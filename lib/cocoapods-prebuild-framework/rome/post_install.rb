@@ -24,8 +24,8 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator)
     lipo_log = `lipo -create -output #{executable_path} #{device_lib} #{simulator_lib}`
     puts lipo_log unless File.exist?(executable_path)
 
-    FileUtils.mv executable_path, device_lib
-    FileUtils.mv device_framework_lib, build_dir
+    FileUtils.mv executable_path, device_lib, :force => true
+    FileUtils.mv device_framework_lib, build_dir, :force => true
     FileUtils.rm simulator_lib if File.file?(simulator_lib)
     FileUtils.rm device_lib if File.file?(device_lib)
   end
