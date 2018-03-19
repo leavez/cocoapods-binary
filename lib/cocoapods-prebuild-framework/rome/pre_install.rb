@@ -1,4 +1,4 @@
-Pod::HooksManager.register('cocoapods-rome', :pre_install) do |installer_context|
+Pod::HooksManager.register('cocoapods-prebuild-framework', :pre_install) do |installer_context|
   podfile = installer_context.podfile
   podfile.use_frameworks!
   podfile.install!('cocoapods',

@@ -38,14 +38,14 @@ def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil)
   Pod::Executable.execute_command 'xcodebuild', args, true
 end
 
-Pod::HooksManager.register('cocoapods-rome', :post_install) do |installer_context|
+Pod::HooksManager.register('cocoapods-prebuild-framework', :post_install) do |installer_context|
   sandbox_root = Pathname(installer_context.sandbox_root)
   sandbox = Pod::Sandbox.new(sandbox_root)
 
   build_dir = sandbox_root.parent + 'build'
-  destination = sandbox_root.parent + 'Rome'
+  destination = sandbox_root.parent + 'Prebuild-frameworks'
 
-  Pod::UI.puts 'Building frameworks'
+  Pod::UI.puts 'Pre-building frameworks'
 
   build_dir.rmtree if build_dir.directory?
   targets = installer_context.umbrella_targets.select { |t| t.specs.any? }
