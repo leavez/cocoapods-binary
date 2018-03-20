@@ -6,13 +6,13 @@ PLATFORMS = { 'iphonesimulator' => 'iOS',
               'watchsimulator' => 'watchOS' }
 
 def build_for_iosish_platform(sandbox, build_dir, target, device, simulator)
-  deployment_target = target.platform_deployment_target
-  target_label = target.cocoapods_target_label
+  deployment_target = target.platform.deployment_target.to_s
+  target_label = target.label
 
   xcodebuild(sandbox, target_label, device, deployment_target)
   xcodebuild(sandbox, target_label, simulator, deployment_target)
 
-  spec_names = target.specs.map { |spec| [spec.root.name, spec.root.module_name] }.uniq
+  spec_names = target.pod_targets.map { |pod_target| [pod_target.pod_name,  pod_target.product_module_name ] }.uniq
   spec_names.each do |root_name, module_name|
     executable_path = "#{build_dir}/#{root_name}"
     device_lib = "#{build_dir}/#{CONFIGURATION}-#{device}/#{root_name}/#{module_name}.framework/#{module_name}"
@@ -48,16 +48,16 @@ Pod::HooksManager.register('cocoapods-prebuild-framework', :post_install) do |in
   Pod::UI.puts 'Pre-building frameworks'
 
   build_dir.rmtree if build_dir.directory?
-  targets = installer_context.umbrella_targets.select { |t| t.specs.any? }
-  targets.each do |target|
-    case target.platform_name
-    when :ios then build_for_iosish_platform(sandbox, build_dir, target, 'iphoneos', 'iphonesimulator')
-    when :osx then xcodebuild(sandbox, target.cocoapods_target_label)
+  aggregate_targets = installer_context.aggregate_targets.select { |t| t.specs.any? }
+  aggregate_targets.each do |aggregate_target|
+    case aggregate_target.platform.name
+    when :ios then build_for_iosish_platform(sandbox, build_dir, aggregate_target, 'iphoneos', 'iphonesimulator')
+    when :osx then xcodebuild(sandbox, aggregate_target.label)
     when :tvos then nil
     when :watchos then nil
     # when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
     # when :watchos then build_for_iosish_platform(sandbox, build_dir, target, 'watchos', 'watchsimulator')
-    else raise "Unknown platform '#{target.platform_name}'" end
+    else raise "Unknown platform '#{aggregate_target.platform.name}'" end
   end
 
   raise Pod::Informative, 'The build directory was not found in the expected location.' unless build_dir.directory?
