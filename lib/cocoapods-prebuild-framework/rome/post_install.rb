@@ -7,12 +7,16 @@ PLATFORMS = { 'iphonesimulator' => 'iOS',
 
 def build_for_iosish_platform(sandbox, build_dir, target, device, simulator)
   deployment_target = target.platform.deployment_target.to_s
-  target_label = target.label
-
-  xcodebuild(sandbox, target_label, device, deployment_target)
-  xcodebuild(sandbox, target_label, simulator, deployment_target)
-
+  
   pod_targets = target.prebuild_pod_targets
+  pod_targets.each do |target|
+    target_label = target.label
+    Pod::UI.puts "prebuilding #{target_label}"
+    xcodebuild(sandbox, target_label, device, deployment_target)
+    xcodebuild(sandbox, target_label, simulator, deployment_target)
+  end
+
+
   spec_names = pod_targets.map { |pod_target| [pod_target.pod_name,  pod_target.product_module_name ] }.uniq
 
   spec_names.each do |root_name, module_name|
