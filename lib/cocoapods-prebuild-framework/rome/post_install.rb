@@ -45,7 +45,7 @@ Pod::HooksManager.register('cocoapods-prebuild-framework', :post_install) do |in
   build_dir = sandbox_root.parent + 'build'
   destination = sandbox_root.parent + 'Prebuild-frameworks'
 
-  Pod::UI.puts 'Pre-building frameworks'
+  Pod::UI.puts 'Pre-building frameworks (may take a long time)'
 
   build_dir.rmtree if build_dir.directory?
   aggregate_targets = installer_context.aggregate_targets.select { |t| t.specs.any? }
