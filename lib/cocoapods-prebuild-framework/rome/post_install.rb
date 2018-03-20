@@ -12,7 +12,9 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator)
   xcodebuild(sandbox, target_label, device, deployment_target)
   xcodebuild(sandbox, target_label, simulator, deployment_target)
 
-  spec_names = target.pod_targets.map { |pod_target| [pod_target.pod_name,  pod_target.product_module_name ] }.uniq
+  pod_targets = target.prebuild_pod_targets
+  spec_names = pod_targets.map { |pod_target| [pod_target.pod_name,  pod_target.product_module_name ] }.uniq
+
   spec_names.each do |root_name, module_name|
     executable_path = "#{build_dir}/#{root_name}"
     device_lib = "#{build_dir}/#{CONFIGURATION}-#{device}/#{root_name}/#{module_name}.framework/#{module_name}"
@@ -48,7 +50,9 @@ Pod::HooksManager.register('cocoapods-prebuild-framework', :post_install) do |in
   Pod::UI.puts 'Pre-building frameworks (may take a long time)'
 
   build_dir.rmtree if build_dir.directory?
-  aggregate_targets = installer_context.aggregate_targets.select { |t| t.specs.any? }
+  aggregate_targets = installer_context.aggregate_targets.select do |t|
+    t.have_prebuild_pod_targets?
+  end
   aggregate_targets.each do |aggregate_target|
     case aggregate_target.platform.name
     when :ios then build_for_iosish_platform(sandbox, build_dir, aggregate_target, 'iphoneos', 'iphonesimulator')
@@ -64,16 +68,15 @@ Pod::HooksManager.register('cocoapods-prebuild-framework', :post_install) do |in
 
   # Make sure the device target overwrites anything in the simulator build, otherwise iTunesConnect
   # can get upset about Info.plist containing references to the simulator SDK
-  frameworks = Pathname.glob("build/*/*/*.framework").reject { |f| f.to_s =~ /Pods.*\.framework/ }
-  frameworks += Pathname.glob("build/*.framework").reject { |f| f.to_s =~ /Pods.*\.framework/ }
+  frameworks = Pathname.glob("build/*.framework").reject { |f| f.to_s =~ /Pods.*\.framework/ }
   Pod::UI.puts "Built #{frameworks.count} #{'frameworks'.pluralize(frameworks.count)}"
 
   destination.rmtree if destination.directory?
 
-  installer_context.umbrella_targets.each do |umbrella|
-    umbrella.specs.each do |spec|
-      consumer = spec.consumer(umbrella.platform_name)
-      file_accessor = Pod::Sandbox::FileAccessor.new(sandbox.pod_dir(spec.root.name), consumer)
+  aggregate_targets.each do |aggregate_target|
+    aggregate_target.prebuild_pod_targets.each do |pod_target|
+      consumer = pod_target.root_spec.consumer(aggregate_target.platform.name)
+      file_accessor = Pod::Sandbox::FileAccessor.new(sandbox.pod_dir(pod_target.pod_name), consumer)
       frameworks += file_accessor.vendored_libraries
       frameworks += file_accessor.vendored_frameworks
     end

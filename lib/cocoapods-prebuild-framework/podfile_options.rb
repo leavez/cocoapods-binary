@@ -78,3 +78,19 @@ module Pod
     end
 end
 
+module Pod
+    class AggregateTarget
+
+        def have_prebuild_pod_targets?
+            prebuild_framework_names = self.target_definition.prebuild_framework_names
+            return (prebuild_framework_names != nil and !prebuild_framework_names.empty?)
+        end
+
+        def prebuild_pod_targets
+            prebuild_framework_names = self.target_definition.prebuild_framework_names
+            pod_targets = self.pod_targets.select { |pod_target| prebuild_framework_names.include?(pod_target.pod_name) }
+            return pod_targets
+        end
+    end
+end
+
