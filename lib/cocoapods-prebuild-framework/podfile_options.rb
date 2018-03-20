@@ -39,3 +39,42 @@ module Pod
       end
     end
 end
+
+
+module Pod
+    class Installer
+      class PostInstallHooksContext
+
+        attr_accessor :aggregate_targets
+
+        # ---- patch method ----
+        def self.generate(sandbox, aggregate_targets)
+            # -- copy from original code --
+            umbrella_targets_descriptions = []
+            aggregate_targets.each do |umbrella|
+              desc = UmbrellaTargetDescription.new
+              desc.user_project = umbrella.user_project
+              desc.user_targets = umbrella.user_targets
+              desc.specs = umbrella.specs
+              desc.platform_name = umbrella.platform.name
+              desc.platform_deployment_target = umbrella.platform.deployment_target.to_s
+              desc.cocoapods_target_label = umbrella.label
+              umbrella_targets_descriptions << desc
+            end
+    
+            result = new
+            result.sandbox_root = sandbox.root.to_s
+            result.pods_project = sandbox.project
+            result.sandbox = sandbox
+            result.umbrella_targets = umbrella_targets_descriptions
+            # -- \copy from original code --
+            
+            result.aggregate_targets = aggregate_targets
+            result
+        end
+
+
+      end
+    end
+end
+
