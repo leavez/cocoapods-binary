@@ -53,8 +53,10 @@ Pod::HooksManager.register('cocoapods-prebuild-framework', :post_install) do |in
     case target.platform_name
     when :ios then build_for_iosish_platform(sandbox, build_dir, target, 'iphoneos', 'iphonesimulator')
     when :osx then xcodebuild(sandbox, target.cocoapods_target_label)
-    when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
-    when :watchos then build_for_iosish_platform(sandbox, build_dir, target, 'watchos', 'watchsimulator')
+    when :tvos then nil
+    when :watchos then nil
+    # when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
+    # when :watchos then build_for_iosish_platform(sandbox, build_dir, target, 'watchos', 'watchsimulator')
     else raise "Unknown platform '#{target.platform_name}'" end
   end
 
