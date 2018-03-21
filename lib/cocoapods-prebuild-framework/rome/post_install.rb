@@ -1,4 +1,5 @@
 require 'fourflusher'
+require_relative '../feature_switches'
 
 CONFIGURATION = "Release"
 PLATFORMS = { 'iphonesimulator' => 'iOS',
@@ -11,7 +12,7 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator)
   pod_targets = target.prebuild_pod_targets
   pod_targets.each do |target|
     target_label = target.label
-    Pod::UI.puts "prebuilding #{target_label}"
+    Pod::UI.puts "Prebuilding #{target_label} ..."
     xcodebuild(sandbox, target_label, device, deployment_target)
     xcodebuild(sandbox, target_label, simulator, deployment_target)
   end
@@ -45,18 +46,23 @@ def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil)
 end
 
 Pod::HooksManager.register('cocoapods-prebuild-framework', :post_install) do |installer_context|
+
+  next unless Pod::Prebuild.prebuild_enabled
+
   sandbox_root = Pathname(installer_context.sandbox_root)
   sandbox = Pod::Sandbox.new(sandbox_root)
 
   build_dir = sandbox_root.parent + 'build'
   destination = sandbox_root.parent + 'Prebuild-frameworks'
 
-  Pod::UI.puts 'Pre-building frameworks (may take a long time)'
-
+  
   build_dir.rmtree if build_dir.directory?
   aggregate_targets = installer_context.aggregate_targets.select do |t|
     t.have_prebuild_pod_targets?
   end
+
+  Pod::UI.puts "Prebuild frameworks (total #{aggregate_targets.count} )"
+
   aggregate_targets.each do |aggregate_target|
     case aggregate_target.platform.name
     when :ios then build_for_iosish_platform(sandbox, build_dir, aggregate_target, 'iphoneos', 'iphonesimulator')
