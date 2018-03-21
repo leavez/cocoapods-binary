@@ -5,6 +5,8 @@ module Pod
         module DSL
             
             @@enable_prebuild_patch = false
+
+            # when enable, `pod` function will skip all pods without 'prebuild => true'
             def self.enable_prebuild_patch(value)
                 @@enable_prebuild_patch = value
             end
@@ -17,7 +19,6 @@ module Pod
                     old_method.bind(self).(name, *args)
                     return
                 end
-
                 options = args.last
                 return unless options.is_a?(Hash)
                 prebuild = options[:prebuild_framework]
