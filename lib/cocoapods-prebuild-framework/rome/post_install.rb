@@ -1,5 +1,7 @@
 require 'fourflusher'
 require_relative '../feature_switches'
+require_relative '../path'
+
 
 CONFIGURATION = "Release"
 PLATFORMS = { 'iphonesimulator' => 'iOS',
@@ -53,7 +55,7 @@ Pod::HooksManager.register('cocoapods-prebuild-framework', :post_install) do |in
   sandbox = Pod::Sandbox.new(sandbox_root)
 
   build_dir = sandbox_root.parent + 'build'
-  destination = sandbox_root.parent + 'Prebuild-frameworks'
+  destination = Pod::Prebuild::Path.generated_frameworks_destination(sandbox_root)
 
   
   build_dir.rmtree if build_dir.directory?
@@ -61,7 +63,7 @@ Pod::HooksManager.register('cocoapods-prebuild-framework', :post_install) do |in
     t.have_prebuild_pod_targets?
   end
 
-  Pod::UI.puts "Prebuild frameworks (total #{aggregate_targets.count} )"
+  Pod::UI.puts "Prebuild frameworks (total #{aggregate_targets.count})"
 
   aggregate_targets.each do |aggregate_target|
     case aggregate_target.platform.name

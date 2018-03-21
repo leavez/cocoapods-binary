@@ -1,4 +1,5 @@
 require_relative 'feature_switches'
+require_relative 'path'
 
 # hook the install command to install twice (first for the prebuilding)
 module Pod
@@ -23,7 +24,7 @@ module Pod
                 
                 # make another custom sandbox
                 standard_sandbox = self.config.sandbox
-                prebuild_targets_path = Pathname(standard_sandbox.root).parent + "Pods_prebuild"
+                prebuild_targets_path = Pod::Prebuild::Path.sanbox_path(standard_sandbox.root)
                 self.config.sandbox = Pod::Sandbox.new(prebuild_targets_path)
                 
                 # don't integrate targets
