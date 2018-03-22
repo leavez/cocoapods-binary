@@ -27,6 +27,7 @@ module Pod
 
             sandbox_path = sandbox.root
             local_manifest = Pod.old_manifest_lock_file
+            existed_framework_folder = Pod::Prebuild::Path.generated_frameworks_destination(Pathname(sandbox_path))
 
             if local_manifest != nil
 
@@ -36,8 +37,7 @@ module Pod
                 unchanged = changes[:unchanged] || []
                 deleted = changes[:removed] || []
     
-                existed_framework_folder = Pod::Prebuild::Path.generated_frameworks_destination(Pathname(sandbox_path))
-                existed_framework_folder.mkdir if not existed_framework_folder.exist?
+                existed_framework_folder.mkdir unless existed_framework_folder.exist?
                 exsited_framework_names = existed_framework_folder.children.map do |framework_name|
                     File.basename(framework_name, File.extname(framework_name))
                 end
