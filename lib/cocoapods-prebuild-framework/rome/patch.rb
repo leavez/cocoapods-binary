@@ -69,6 +69,17 @@ module Pod
                 Pod::Prebuild.build(sandbox_path, self.pod_targets)
             end
 
+            # Remove useless files
+            # only keep manifest.lock and framework folder
+            to_remain_files = ["Manifest.lock", File.basename(existed_framework_folder)]
+            to_delete_files = sandbox_path.children.select do |file|
+                filename = File.basename(file)
+                not to_remain_files.include?(filename)
+            end
+            to_delete_files.each do |path|
+                path.rmtree if path.exist?
+            end
+
         end
 
 
