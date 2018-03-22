@@ -5,6 +5,7 @@ require_relative 'path'
 module Pod
     class Config
         attr_writer :sandbox
+        attr_writer :lockfile
     end
 
     class Command
@@ -17,18 +18,17 @@ module Pod
             define_method(:run) do 
 
                 # -- step 1: prebuild framework ---
-                
-                # enable sikpping for prebuild targets
-                Pod::Podfile::DSL.enable_prebuild_patch true
-                Pod::Prebuild.set_enable_prebuild true
-                
+
+                # control features
+                Pod::Podfile::DSL.enable_prebuild_patch true  # enable sikpping for prebuild targets
+                Pod::Prebuild.set_enable_prebuild true        # enable prebuid action
+                Pod::Installer.force_disable_integration true # don't integrate targets
+                Pod::Config.force_disable_write_lockfile true # disbale write lock file for perbuild podfile
+
                 # make another custom sandbox
                 standard_sandbox = self.config.sandbox
                 prebuild_targets_path = Pod::Prebuild::Path.sanbox_path(standard_sandbox.root)
                 self.config.sandbox = Pod::Sandbox.new(prebuild_targets_path)
-                
-                # don't integrate targets
-                Pod::Installer.force_disable_integration true
                 
                 # install
                 Pod::UI.puts "--- Step 1: prebuild framework ---"
@@ -39,10 +39,12 @@ module Pod
 
                 # reset the environment
                 self.config.podfile = nil
+                self.config.lockfile = nil
                 self.config.sandbox = standard_sandbox
                 Pod::Installer.force_disable_integration false
                 Pod::Podfile::DSL.enable_prebuild_patch false
                 Pod::Prebuild.set_enable_prebuild false
+                Pod::Config.force_disable_write_lockfile false
 
                 # install
                 Pod::UI.puts "--- Step 2: pod install ---"

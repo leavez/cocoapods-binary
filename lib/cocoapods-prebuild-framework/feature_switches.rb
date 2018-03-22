@@ -44,6 +44,22 @@ module Pod
             old_method.bind(self).()
         end
     end
+
+    # option to disable write lockfiles
+    class Config
+        def self.force_disable_write_lockfile(value)
+            @@force_disable_write_lockfile = value
+        end
+        
+        old_method = instance_method(:lockfile_path)
+        define_method(:lockfile_path) do 
+            if @@force_disable_write_lockfile
+                return self.sandbox.root + 'Manifest.lock.bak'
+            else
+                return old_method.bind(self).()
+            end
+        end
+    end
     
     # a option to control the Rome buiding functionality
     class Prebuild
