@@ -16,7 +16,7 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator)
   deployment_target = target.platform.deployment_target.to_s
   
   target_label = target.label
-  Pod::UI.puts "Prebuilding #{target_label} ..."
+  Pod::UI.puts "Prebuilding #{target_label}..."
   xcodebuild(sandbox, target_label, device, deployment_target)
   xcodebuild(sandbox, target_label, simulator, deployment_target)
 
@@ -73,7 +73,7 @@ module Pod
 
 
     
-      Pod::UI.puts "Prebuild frameworks (total #{targets.count} )"
+      Pod::UI.puts "Prebuild frameworks (total #{targets.count})"
     
       targets.each do |target|
         case target.platform.name
@@ -92,8 +92,6 @@ module Pod
       # can get upset about Info.plist containing references to the simulator SDK
       frameworks = Pathname.glob("build/*.framework").reject { |f| f.to_s =~ /Pods.*\.framework/ }
       Pod::UI.puts "Built #{frameworks.count} #{'frameworks'.pluralize(frameworks.count)}"
-    
-      destination.rmtree if destination.directory?
     
       targets.each do |pod_target|
           consumer = pod_target.root_spec.consumer(pod_target.platform.name)

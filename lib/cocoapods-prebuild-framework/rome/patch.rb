@@ -1,9 +1,22 @@
 require_relative 'prebuild_action'
 
-# check user_framework is on
+module Pod
+    def self.old_manifest_lock_file
+        @@old_manifest_lock_file
+    end
+    def self.set_old_manifest_lock_file(value)
+        @@old_manifest_lock_file = value
+    end
+end
+
 Pod::HooksManager.register('cocoapods-prebuild-framework', :pre_install) do |installer_context|
     podfile = installer_context.podfile
+    # check user_framework is on
     # podfile.use_frameworks!
+
+    # Save manifest before generate a new one
+    # it will be used in pod install hook (the code below)
+    Pod.set_old_manifest_lock_file( installer_context.sandbox.manifest )
 end
 
 # patch prebuild ability
@@ -11,11 +24,12 @@ module Pod
     class Installer
 
         def prebuild_frameworks 
-            
+
             sandbox_path = sandbox.root
-            local_manifest = self.sandbox.manifest
+            local_manifest = Pod.old_manifest_lock_file
 
             if local_manifest != nil
+
                 changes = local_manifest.detect_changes_with_podfile(podfile)
                 added = changes[:added] || []
                 changed = changes[:changed] || []
@@ -23,6 +37,7 @@ module Pod
                 deleted = changes[:removed] || []
     
                 existed_framework_folder = Pod::Prebuild::Path.generated_frameworks_destination(Pathname(sandbox_path))
+                existed_framework_folder.mkdir if not existed_framework_folder.exist?
                 exsited_framework_names = existed_framework_folder.children.map do |framework_name|
                     File.basename(framework_name, File.extname(framework_name))
                 end
@@ -30,7 +45,7 @@ module Pod
                 # deletions
                 # remove all frameworks except ones to remain
                 unchange_framework_names = added + unchanged
-                to_delete = exsited_framework_names.each do |framework_name|
+                to_delete = exsited_framework_names.select do |framework_name|
                     not unchange_framework_names.include?(framework_name)
                 end
                 to_delete.each do |framework_name|
@@ -51,7 +66,6 @@ module Pod
                 Pod::Prebuild.build(sandbox_path, targets)
                 
             else
-                puts "B"
                 Pod::Prebuild.build(sandbox_path, self.pod_targets)
             end
 
