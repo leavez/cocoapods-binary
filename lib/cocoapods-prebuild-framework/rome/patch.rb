@@ -27,7 +27,7 @@ module Pod
 
             sandbox_path = sandbox.root
             local_manifest = Pod.old_manifest_lock_file
-            existed_framework_folder = Pod::Prebuild::Path.generated_frameworks_destination(Pathname(sandbox_path))
+            existed_framework_folder = Pod::Prebuild::Path.generated_frameworks_destination(sandbox_path)
 
             if local_manifest != nil
 

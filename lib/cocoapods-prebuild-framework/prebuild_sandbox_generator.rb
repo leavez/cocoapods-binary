@@ -27,7 +27,7 @@ module Pod
 
                 # make another custom sandbox
                 standard_sandbox = self.config.sandbox
-                prebuild_targets_path = Pod::Prebuild::Path.sanbox_path(standard_sandbox.root)
+                prebuild_targets_path = Pod::Prebuild::Path.prebuild_sanbox_path(standard_sandbox.root)
                 self.config.sandbox = Pod::Sandbox.new(prebuild_targets_path)
                 
                 # install
