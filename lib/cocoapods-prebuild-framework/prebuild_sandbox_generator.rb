@@ -20,6 +20,7 @@ module Pod
                 # -- step 1: prebuild framework ---
 
                 # control features
+                Pod.set_is_prebuild_stage true
                 Pod::Podfile::DSL.enable_prebuild_patch true  # enable sikpping for prebuild targets
                 Pod::Prebuild.set_enable_prebuild true        # enable prebuid action
                 Pod::Installer.force_disable_integration true # don't integrate targets
@@ -41,6 +42,7 @@ module Pod
                 self.config.podfile = nil
                 self.config.lockfile = nil
                 self.config.sandbox = standard_sandbox
+                Pod.set_is_prebuild_stage false
                 Pod::Installer.force_disable_integration false
                 Pod::Podfile::DSL.enable_prebuild_patch false
                 Pod::Prebuild.set_enable_prebuild false

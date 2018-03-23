@@ -1,5 +1,13 @@
 module Pod
 
+    # a flag that indicate stages
+    def self.is_prebuild_stage
+        @@is_prebuild_stage
+    end
+    def self.set_is_prebuild_stage(value)
+        @@is_prebuild_stage = value
+    end
+
     # a switch for the `pod` DSL to make it only valid for 'prebuild => true'
     class Podfile
         module DSL
