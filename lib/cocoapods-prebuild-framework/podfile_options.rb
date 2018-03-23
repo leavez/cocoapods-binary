@@ -15,15 +15,16 @@ module Pod
         end
         
         def set_prebuild_for_pod(pod_name, should_prebuild)
-          return unless should_prebuild == true
-          if @prebuild_framework_names.nil? 
-            @prebuild_framework_names = []
-          end
-          @prebuild_framework_names.push pod_name
+            return unless should_prebuild == true
+            
+            @prebuild_framework_names ||= []
+            @prebuild_framework_names.push pod_name
+            puts "true: #{self.prebuild_framework_names}"
+            puts self
         end
 
         def prebuild_framework_names
-            @prebuild_framework_names
+            @prebuild_framework_names || []
         end
 
         # ---- patch method ----
@@ -43,38 +44,14 @@ end
 
 module Pod
     class Installer
-      class PostInstallHooksContext
-
-        attr_accessor :aggregate_targets
-
-        # ---- patch method ----
-        def self.generate(sandbox, aggregate_targets)
-            # -- copy from original code --
-            umbrella_targets_descriptions = []
-            aggregate_targets.each do |umbrella|
-              desc = UmbrellaTargetDescription.new
-              desc.user_project = umbrella.user_project
-              desc.user_targets = umbrella.user_targets
-              desc.specs = umbrella.specs
-              desc.platform_name = umbrella.platform.name
-              desc.platform_deployment_target = umbrella.platform.deployment_target.to_s
-              desc.cocoapods_target_label = umbrella.label
-              umbrella_targets_descriptions << desc
+        def prebuild_pod_names 
+            @prebuild_pod_names unless @prebuild_pod_names.nil? 
+            names = self.aggregate_targets.reduce([]) do |sum, element|
+                sum + element.target_definition.prebuild_framework_names
             end
-    
-            result = new
-            result.sandbox_root = sandbox.root.to_s
-            result.pods_project = sandbox.project
-            result.sandbox = sandbox
-            result.umbrella_targets = umbrella_targets_descriptions
-            # -- \copy from original code --
-            
-            result.aggregate_targets = aggregate_targets
-            result
+            @prebuild_pod_names = names
+            names
         end
-
-
-      end
     end
 end
 
