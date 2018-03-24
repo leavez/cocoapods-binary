@@ -9,9 +9,16 @@ module Pod
 end
 
 Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_context|
-    podfile = installer_context.podfile
+    
     # check user_framework is on
-    # podfile.use_frameworks!
+    podfile = installer_context.podfile
+    podfile.target_definition_list.each do |target_definition|
+        next if target_definition.prebuild_framework_names.empty?
+        if not target_definition.uses_frameworks?
+            STDERR.puts "[!] Cocoapods-binary requires `use_frameworks!`".red
+            exit
+        end
+    end
 
     # Save manifest before generate a new one
     # it will be used in pod install hook (the code below)
