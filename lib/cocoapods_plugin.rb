@@ -1,3 +1,5 @@
+require 'cocoapods-prebuild-framework/tool/tool'
+
 require 'cocoapods-prebuild-framework/podfile_options'
 require 'cocoapods-prebuild-framework/prebuild_sandbox'
 

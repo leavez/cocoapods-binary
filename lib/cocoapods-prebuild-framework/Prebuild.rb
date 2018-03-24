@@ -1,21 +1,10 @@
 require_relative 'rome/build_framework'
 
 module Pod
-    def self.old_manifest_lock_file
-        @@old_manifest_lock_file
-    end
-    def self.set_old_manifest_lock_file(value)
-        @@old_manifest_lock_file = value
-    end
-
+    class_attr_accessor :old_manifest_lock_file
+    
     class Prebuild
-        @@framework_changes
-        def self.framework_changes
-            @@framework_changes
-        end
-        def self.set_framework_changes(value)
-            @@framework_changes = value
-        end
+        class_attr_accessor :framework_changes
     end
 end
 
@@ -26,7 +15,7 @@ Pod::HooksManager.register('cocoapods-prebuild-framework', :pre_install) do |ins
 
     # Save manifest before generate a new one
     # it will be used in pod install hook (the code below)
-    Pod.set_old_manifest_lock_file( installer_context.sandbox.manifest )
+    Pod.old_manifest_lock_file = installer_context.sandbox.manifest
 end
 
 # patch prebuild ability
@@ -42,7 +31,7 @@ module Pod
             if local_manifest != nil
 
                 changes = local_manifest.detect_changes_with_podfile(podfile)
-                Pod::Prebuild.set_framework_changes(changes) # save the chagnes info for later stage
+                Pod::Prebuild.framework_changes = changes # save the chagnes info for later stage
                 added = changes[:added] || []
                 changed = changes[:changed] || []
                 unchanged = changes[:unchanged] || []
@@ -75,7 +64,7 @@ module Pod
                 Pod::Prebuild.build(sandbox_path, existed_framework_folder, targets)
                 
             else
-                Pod::Prebuild.set_framework_changes(nil)
+                Pod::Prebuild.framework_changes = nil
                 Pod::Prebuild.build(sandbox_path, existed_framework_folder, self.pod_targets)
             end
 
@@ -97,7 +86,7 @@ module Pod
         old_method = instance_method(:run_plugins_post_install_hooks)
         define_method(:run_plugins_post_install_hooks) do 
             old_method.bind(self).()
-            if Pod::Prebuild.prebuild_enabled
+            if Pod::is_prebuild_stage
                 self.prebuild_frameworks
             end
         end

@@ -1,12 +1,8 @@
 module Pod
 
     # a flag that indicate stages
-    def self.is_prebuild_stage
-        @@is_prebuild_stage
-    end
-    def self.set_is_prebuild_stage(value)
-        @@is_prebuild_stage = value
-    end
+    class_attr_accessor :is_prebuild_stage
+
 
     # a switch for the `pod` DSL to make it only valid for 'prebuild => true'
     class Podfile
@@ -55,7 +51,7 @@ module Pod
 
     # option to disable write lockfiles
     class Config
-        
+
         @@force_disable_write_lockfile
         def self.force_disable_write_lockfile(value)
             @@force_disable_write_lockfile = value
@@ -71,13 +67,4 @@ module Pod
         end
     end
     
-    # a option to control the Rome buiding functionality
-    class Prebuild
-        def self.set_enable_prebuild(value)
-            @@enable_prebuild = value
-        end
-        def self.prebuild_enabled
-            @@enable_prebuild
-        end
-    end
 end
