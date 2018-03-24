@@ -18,7 +18,7 @@ module Pod
 
                 target_folder = standard_sanbox.pod_dir(self.name)
                 return if standard_sanbox.local? self.name
-                
+
                 target_folder.rmtree if target_folder.exist?
                 target_folder.mkdir unless target_folder.exist?
                 target = target_folder + "#{self.name}.framework"
@@ -52,7 +52,7 @@ module Pod
 
                 # delete the cached files
                 target_path = self.sandbox.pod_dir(root_name)
-                target_path.rmtree
+                target_path.rmtree if target_path.exist?
             end
 
         end
