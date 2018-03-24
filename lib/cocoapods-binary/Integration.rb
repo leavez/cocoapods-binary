@@ -73,6 +73,9 @@ module Pod
                     next unless self.prebuild_pod_names.include? spec.name
                     spec.attributes_hash["vendored_frameworks"] = "#{spec.name}.framework"
                     spec.attributes_hash["source_files"] = []
+
+                    # to avoid the warning of missing license
+                    spec.attributes_hash["license"] = {} 
                 end
             end
 
