@@ -3,6 +3,19 @@
 require_relative 'feature_switches'
 require_relative 'prebuild_sandbox'
 
+Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_context|
+    
+    # check user_framework is on
+    podfile = installer_context.podfile
+    podfile.target_definition_list.each do |target_definition|
+        next if target_definition.prebuild_framework_names.empty?
+        if not target_definition.uses_frameworks?
+            STDERR.puts "[!] Cocoapods-binary requires `use_frameworks!`".red
+            exit
+        end
+    end
+end
+
 # hook the install command to install twice (first for the prebuilding)
 module Pod
     class Config
