@@ -1,6 +1,5 @@
 require 'fourflusher'
 require_relative '../feature_switches'
-require_relative '../path'
 
 
 CONFIGURATION = "Release"
@@ -56,10 +55,13 @@ module Pod
     # @param  [String] sandbox_root_path
     #         The sandbox root path where the targets project place
     #         
+    #         [Pathname] output_path
+    #         output path for generated frameworks
+    #
     #         [Array<PodTarget>] targets
     #         The pod targets to build
     #
-    def self.build(sandbox_root_path, targets)
+    def self.build(sandbox_root_path, output_path, targets)
     
       return unless not targets.empty?
     
@@ -67,12 +69,11 @@ module Pod
       sandbox = Pod::Sandbox.new(sandbox_root)
     
       build_dir = sandbox_root.parent + 'build'
-      destination = Pod::Prebuild::Path.generated_frameworks_destination(sandbox_root)
+      destination = output_path
     
       build_dir.rmtree if build_dir.directory?
 
 
-    
       Pod::UI.puts "Prebuild frameworks (total #{targets.count})"
     
       targets.each do |target|

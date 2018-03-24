@@ -1,6 +1,6 @@
 require_relative 'podfile_options'
 require_relative 'feature_switches'
-require_relative 'path'
+require_relative 'prebuild_sandbox'
 
 # Provide a special "download" process for prebuilded pods.
 #
@@ -13,10 +13,12 @@ module Pod
 
             def install_for_prebuild!(standard_sanbox)
                 # make a symlink to target folder
-                prebuild_sanbox_path = Pod::Prebuild::Path.prebuild_sanbox_path(standard_sanbox.root)
-                frameworks_path = Pod::Prebuild::Path.generated_frameworks_destination(prebuild_sanbox_path)
-                source = frameworks_path + "#{self.name}.framework"
+                prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sanbox)
+                source = prebuild_sandbox.framework_path_for_pod_name self.name
+
                 target_folder = standard_sanbox.pod_dir(self.name)
+                return if standard_sanbox.local? self.name
+                
                 target_folder.rmtree if target_folder.exist?
                 target_folder.mkdir unless target_folder.exist?
                 target = target_folder + "#{self.name}.framework"
@@ -39,6 +41,7 @@ module Pod
         def remove_target_files_if_needed
 
             changes = Pod::Prebuild.framework_changes
+            return if changes == nil
             added = changes[:added] || []
             changed = changes[:changed] || []
             deleted = changes[:removed] || []

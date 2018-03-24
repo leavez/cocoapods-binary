@@ -9,6 +9,7 @@ module Pod
     end
 
     class Prebuild
+        @@framework_changes
         def self.framework_changes
             @@framework_changes
         end
@@ -34,9 +35,9 @@ module Pod
 
         def prebuild_frameworks 
 
-            sandbox_path = sandbox.root
             local_manifest = Pod.old_manifest_lock_file
-            existed_framework_folder = Pod::Prebuild::Path.generated_frameworks_destination(sandbox_path)
+            sandbox_path = sandbox.root
+            existed_framework_folder = sandbox.generate_framework_path
 
             if local_manifest != nil
 
@@ -48,10 +49,8 @@ module Pod
                 deleted = changes[:removed] || []
     
                 existed_framework_folder.mkdir unless existed_framework_folder.exist?
-                exsited_framework_names = existed_framework_folder.children.map do |framework_name|
-                    File.basename(framework_name, File.extname(framework_name))
-                end
-
+                exsited_framework_names = sandbox.exsited_framework_names
+                
                 # deletions
                 # remove all frameworks except ones to remain
                 unchange_framework_names = added + unchanged
@@ -73,10 +72,11 @@ module Pod
                         pod_target.root_spec.name == pod_name
                     end
                 end
-                Pod::Prebuild.build(sandbox_path, targets)
+                Pod::Prebuild.build(sandbox_path, existed_framework_folder, targets)
                 
             else
-                Pod::Prebuild.build(sandbox_path, self.pod_targets)
+                Pod::Prebuild.set_framework_changes(nil)
+                Pod::Prebuild.build(sandbox_path, existed_framework_folder, self.pod_targets)
             end
 
             # Remove useless files
