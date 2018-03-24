@@ -1,4 +1,4 @@
-require_relative 'prebuild_action'
+require_relative 'rome/build_framework'
 
 module Pod
     def self.old_manifest_lock_file

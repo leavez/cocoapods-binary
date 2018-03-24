@@ -1,6 +1,7 @@
 require 'cocoapods-prebuild-framework/podfile_options'
 require 'cocoapods-prebuild-framework/prebuild_sandbox'
+
 require 'cocoapods-prebuild-framework/Integration'
+require 'cocoapods-prebuild-framework/Prebuild'
 require 'cocoapods-prebuild-framework/Main'
 
-require 'cocoapods-prebuild-framework/rome/patch'
