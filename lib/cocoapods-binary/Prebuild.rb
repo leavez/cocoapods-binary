@@ -79,6 +79,8 @@ module Pod
 
             # check if need build frameworks
             local_manifest = self.sandbox.manifest
+            return old_method.bind(self).() if local_manifest == nil
+
             changes = local_manifest.detect_changes_with_podfile(podfile)
             added = changes[:added] || []
             changed = changes[:changed] || []
