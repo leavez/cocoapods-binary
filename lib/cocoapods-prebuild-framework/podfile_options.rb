@@ -19,8 +19,6 @@ module Pod
             
             @prebuild_framework_names ||= []
             @prebuild_framework_names.push pod_name
-            puts "true: #{self.prebuild_framework_names}"
-            puts self
         end
 
         def prebuild_framework_names
@@ -45,12 +43,7 @@ end
 module Pod
     class Installer
         def prebuild_pod_names 
-            @prebuild_pod_names unless @prebuild_pod_names.nil? 
-            names = self.aggregate_targets.reduce([]) do |sum, element|
-                sum + element.target_definition.prebuild_framework_names
-            end
-            @prebuild_pod_names = names
-            names
+            @prebuild_pod_names ||= self.podfile.target_definition_list.map(&:prebuild_framework_names).flatten.uniq
         end
     end
 end
