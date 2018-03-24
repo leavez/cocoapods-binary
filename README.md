@@ -1,11 +1,21 @@
-# cocoapods-prebuild-framework
+# cocoapods-binary
 
-A description of cocoapods-prebuild-framework.
+A cocoapods plugin that enable to integrate pod in form of prebuilt framework, not source code, with **just one flag** in podfile. This can dramcally speed up your compile time.
+
+(This project is still in early stage.)
 
 ## Installation
 
-    $ gem install cocoapods-prebuild-framework
+    $ gem install cocoapods-binary
 
 ## Usage
 
-    $ pod spec framework POD_NAME
+Add this in the podfile:
+
+``` ruby
+plugin 'cocoapods-binary'
+
+target "HP" do 
+    pod "ExpectoPatronum", :binary => true
+end
+```
