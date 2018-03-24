@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require_relative 'feature_switches'
 require_relative 'prebuild_sandbox'
 
@@ -31,7 +33,7 @@ module Pod
                 self.config.sandbox = prebuild_sandbox
                 
                 # install
-                Pod::UI.puts "--- Step 1: prebuild framework ---"
+                Pod::UI.puts "✔️  Prebuild frameworks"
                 old_method.bind(self).()
 
                 
@@ -47,7 +49,8 @@ module Pod
                 Pod::Config.force_disable_write_lockfile false
 
                 # install
-                Pod::UI.puts "--- Step 2: pod install ---"
+                Pod::UI.puts "\n"
+                Pod::UI.puts "✔️  Pod Install"
                 old_method.bind(self).()
             end
           
