@@ -1,4 +1,11 @@
 module Pod
+
+    class Prebuild
+        def self.keyword
+            :binary
+        end
+    end
+
     class Podfile
       class TargetDefinition
 
@@ -7,16 +14,14 @@ module Pod
             options = requirements.last
             return requirements unless options.is_a?(Hash)
     
-            should_prebuild_framework = options.delete(:prebuild_framework)
+            should_prebuild_framework = options.delete(Pod::Prebuild.keyword)
             pod_name = Specification.root_name(name)
             set_prebuild_for_pod(pod_name, should_prebuild_framework)
-    
             requirements.pop if options.empty?
         end
         
         def set_prebuild_for_pod(pod_name, should_prebuild)
             return unless should_prebuild == true
-            
             @prebuild_framework_names ||= []
             @prebuild_framework_names.push pod_name
         end

@@ -4,7 +4,7 @@ module Pod
     class_attr_accessor :is_prebuild_stage
 
 
-    # a switch for the `pod` DSL to make it only valid for 'prebuild => true'
+    # a switch for the `pod` DSL to make it only valid for ':binary => true'
     class Podfile
         module DSL
             
@@ -25,7 +25,7 @@ module Pod
                 end
                 options = args.last
                 return unless options.is_a?(Hash)
-                prebuild = options[:prebuild_framework]
+                prebuild = options[Pod::Prebuild.keyword]
                 if prebuild
                     old_method.bind(self).(name, *args)
                 end
