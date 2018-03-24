@@ -22,7 +22,6 @@ module Pod
             if local_manifest != nil
 
                 changes = local_manifest.detect_changes_with_podfile(podfile)
-                Pod::Prebuild.framework_changes = changes # save the chagnes info for later stage
                 added = changes[:added] || []
                 changed = changes[:changed] || []
                 unchanged = changes[:unchanged] || []
@@ -38,7 +37,7 @@ module Pod
                     not unchange_framework_names.include?(framework_name)
                 end
                 to_delete.each do |framework_name|
-                    path = existed_framework_folder + (framework_name + ".framework")
+                    path = sandbox.framework_path_for_pod_name framework_name
                     path.rmtree if path.exist?
                 end
     
@@ -55,7 +54,6 @@ module Pod
                 Pod::Prebuild.build(sandbox_path, existed_framework_folder, targets)
                 
             else
-                Pod::Prebuild.framework_changes = nil
                 Pod::Prebuild.build(sandbox_path, existed_framework_folder, self.pod_targets)
             end
 
@@ -79,20 +77,31 @@ module Pod
 
             # check if need build frameworks
             local_manifest = self.sandbox.manifest
+            Pod::Prebuild.framework_changes = nil
             return old_method.bind(self).() if local_manifest == nil
 
             changes = local_manifest.detect_changes_with_podfile(podfile)
             added = changes[:added] || []
             changed = changes[:changed] || []
             unchanged = changes[:unchanged] || []
-
+            deleted = changes[:removed] || []
+            Pod::Prebuild.framework_changes = changes # save the chagnes info for later stage
+            
             unchange_framework_names = added + unchanged
             exsited_framework_names = sandbox.exsited_framework_names
             missing = unchanged.select do |pod_name|
                 not exsited_framework_names.include?(pod_name)
             end
-
+            
             if (added + changed + missing).empty? 
+                deleted.each do |framework_name|
+                    path = sandbox.framework_path_for_pod_name framework_name
+                    if path.exist?
+                        path.rmtree
+                        UI.puts "Delete #{framework_name}"
+                    end
+                end
+
                 # don't do the install
                 exsited_framework_names.each do |name|
                     UI.puts "Using #{name}"
