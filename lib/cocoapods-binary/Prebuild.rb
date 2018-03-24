@@ -1,8 +1,6 @@
 require_relative 'rome/build_framework'
 
-module Pod
-    class_attr_accessor :old_manifest_lock_file
-    
+module Pod    
     class Prebuild
         class_attr_accessor :framework_changes
     end
@@ -19,16 +17,15 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
             exit
         end
     end
-
-    # Save manifest before generate a new one
-    # it will be used in pod install hook (the code below)
-    Pod.old_manifest_lock_file = installer_context.sandbox.manifest
 end
 
 # patch prebuild ability
 module Pod
-    class Installer
 
+    class_attr_accessor :old_manifest_lock_file
+
+    class Installer
+        
         def prebuild_frameworks 
 
             local_manifest = Pod.old_manifest_lock_file
@@ -88,15 +85,47 @@ module Pod
 
         end
 
+        # check if need to prebuild
+        old_method = instance_method(:install!)
+        define_method(:install!) do
+            return old_method.bind(self).() unless Pod.is_prebuild_stage
 
-        # path the post install hook
-        old_method = instance_method(:run_plugins_post_install_hooks)
-        define_method(:run_plugins_post_install_hooks) do 
+            # check if need build frameworks
+            local_manifest = self.sandbox.manifest
+            changes = local_manifest.detect_changes_with_podfile(podfile)
+            added = changes[:added] || []
+            changed = changes[:changed] || []
+            unchanged = changes[:unchanged] || []
+
+            unchange_framework_names = added + unchanged
+            exsited_framework_names = sandbox.exsited_framework_names
+            missing = unchanged.select do |pod_name|
+                not exsited_framework_names.include?(pod_name)
+            end
+
+            if (added + changed + missing).empty? 
+                # don't do the install
+                exsited_framework_names.each do |name|
+                    UI.puts "Using #{name}"
+                end
+                return
+            end
+            
+            # normal install
+            # Save manifest before generate a new one
+            Pod.old_manifest_lock_file = local_manifest
             old_method.bind(self).()
+        end
+        
+        # patch the post install hook
+        old_method2 = instance_method(:run_plugins_post_install_hooks)
+        define_method(:run_plugins_post_install_hooks) do 
+            old_method2.bind(self).()
             if Pod::is_prebuild_stage
                 self.prebuild_frameworks
             end
         end
+
 
     end
 end
