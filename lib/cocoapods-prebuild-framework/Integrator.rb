@@ -17,6 +17,7 @@ module Pod
                 frameworks_path = Pod::Prebuild::Path.generated_frameworks_destination(prebuild_sanbox_path)
                 source = frameworks_path + "#{self.name}.framework"
                 target_folder = standard_sanbox.pod_dir(self.name)
+                target_folder.rmtree if target_folder.exist?
                 target_folder.mkdir unless target_folder.exist?
                 target = target_folder + "#{self.name}.framework"
                 File.symlink(source, target)
@@ -34,18 +35,44 @@ end
 module Pod
     class Installer
 
+        # Remove the old target files if prebuild frameworks changed
+        def remove_target_files_if_needed
+
+            changes = Pod::Prebuild.framework_changes
+            added = changes[:added] || []
+            changed = changes[:changed] || []
+            deleted = changes[:removed] || []
+
+            (added + changed + deleted).each do |name|
+                root_name = Specification.root_name(name)
+                next if self.sandbox.local?(root_name)
+
+                # delete the cached files
+                target_path = self.sandbox.pod_dir(root_name)
+                target_path.rmtree
+            end
+
+        end
+
 
         # Modify specification to use only the prebuild framework after analyzing
         old_method2 = instance_method(:resolve_dependencies)
         define_method(:resolve_dependencies) do
-            old_method2.bind(self).()
-            return if Pod.is_prebuild_stage
 
-            self.analysis_result.specifications.each do |spec|
-                next unless self.prebuild_pod_names.include? spec.name
-                spec.attributes_hash["vendored_frameworks"] = "#{spec.name}.framework"
-                spec.attributes_hash["source_files"] = []
+            if Pod.is_prebuild_stage
+                old_method2.bind(self).()
+            else
+                # Remove the old target files, else it will not notice file changes
+                self.remove_target_files_if_needed
+                old_method2.bind(self).()
+
+                self.analysis_result.specifications.each do |spec|
+                    next unless self.prebuild_pod_names.include? spec.name
+                    spec.attributes_hash["vendored_frameworks"] = "#{spec.name}.framework"
+                    spec.attributes_hash["source_files"] = []
+                end
             end
+
         end
 
 

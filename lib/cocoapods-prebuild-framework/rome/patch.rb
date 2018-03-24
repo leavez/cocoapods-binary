@@ -7,6 +7,15 @@ module Pod
     def self.set_old_manifest_lock_file(value)
         @@old_manifest_lock_file = value
     end
+
+    class Prebuild
+        def self.framework_changes
+            @@framework_changes
+        end
+        def self.set_framework_changes(value)
+            @@framework_changes = value
+        end
+    end
 end
 
 Pod::HooksManager.register('cocoapods-prebuild-framework', :pre_install) do |installer_context|
@@ -32,6 +41,7 @@ module Pod
             if local_manifest != nil
 
                 changes = local_manifest.detect_changes_with_podfile(podfile)
+                Pod::Prebuild.set_framework_changes(changes) # save the chagnes info for later stage
                 added = changes[:added] || []
                 changed = changes[:changed] || []
                 unchanged = changes[:unchanged] || []
