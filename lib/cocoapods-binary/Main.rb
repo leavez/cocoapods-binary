@@ -26,6 +26,7 @@ module Pod
                 Pod::Podfile::DSL.enable_prebuild_patch true  # enable sikpping for prebuild targets
                 Pod::Installer.force_disable_integration true # don't integrate targets
                 Pod::Config.force_disable_write_lockfile true # disbale write lock file for perbuild podfile
+                Pod::Installer.disable_install_complete_message true # disable install complete message
 
                 # make another custom sandbox
                 standard_sandbox = self.config.sandbox
@@ -47,6 +48,7 @@ module Pod
                 Pod::Installer.force_disable_integration false
                 Pod::Podfile::DSL.enable_prebuild_patch false
                 Pod::Config.force_disable_write_lockfile false
+                Pod::Installer.disable_install_complete_message false
 
                 # install
                 Pod::UI.puts "\n"

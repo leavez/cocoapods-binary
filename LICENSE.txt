@@ -1,4 +1,4 @@
-Copyright (c) 2018 GaoJi <gaoji@mobike.com>
+Copyright (c) 2018 leavez <gaojiji@gmail.com>
 
 MIT License
 

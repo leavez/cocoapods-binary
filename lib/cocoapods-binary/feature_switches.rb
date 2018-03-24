@@ -49,6 +49,21 @@ module Pod
         end
     end
 
+    # a option to disable install complete message
+    class Installer
+        def self.disable_install_complete_message(value)
+            @@disable_install_complete_message = value
+        end
+        
+        old_method = instance_method(:print_post_install_message)
+        define_method(:print_post_install_message) do 
+            if @@disable_install_complete_message
+                return
+            end
+            old_method.bind(self).()
+        end
+    end
+
     # option to disable write lockfiles
     class Config
 

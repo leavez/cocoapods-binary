@@ -1,9 +1,9 @@
-require 'cocoapods-prebuild-framework/tool/tool'
+require 'cocoapods-binary/tool/tool'
 
-require 'cocoapods-prebuild-framework/podfile_options'
-require 'cocoapods-prebuild-framework/prebuild_sandbox'
+require 'cocoapods-binary/podfile_options'
+require 'cocoapods-binary/prebuild_sandbox'
 
-require 'cocoapods-prebuild-framework/Integration'
-require 'cocoapods-prebuild-framework/Prebuild'
-require 'cocoapods-prebuild-framework/Main'
+require 'cocoapods-binary/Integration'
+require 'cocoapods-binary/Prebuild'
+require 'cocoapods-binary/Main'
 

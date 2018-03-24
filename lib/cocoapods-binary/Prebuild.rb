@@ -8,7 +8,7 @@ module Pod
     end
 end
 
-Pod::HooksManager.register('cocoapods-prebuild-framework', :pre_install) do |installer_context|
+Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_context|
     podfile = installer_context.podfile
     # check user_framework is on
     # podfile.use_frameworks!
