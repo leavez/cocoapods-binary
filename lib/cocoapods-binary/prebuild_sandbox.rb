@@ -22,8 +22,13 @@ module Pod
         def exsited_framework_names
             [] unless generate_framework_path.exist?
             generate_framework_path.children.map do |framework_name|
-                File.basename(framework_name, File.extname(framework_name))
-            end
+                extension = File.extname(framework_name)
+                if extension == ".framework"
+                    File.basename(framework_name, extension)
+                else
+                    nil
+                end
+            end.reject(&:nil?)
         end
     end
 end
