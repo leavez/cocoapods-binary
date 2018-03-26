@@ -1,4 +1,5 @@
 require_relative 'tool/tool'
+require_relative 'prebuild_sandbox'
 
 module Pod
 
@@ -77,7 +78,8 @@ module Pod
         old_method = instance_method(:lockfile_path)
         define_method(:lockfile_path) do 
             if @@force_disable_write_lockfile
-                return self.sandbox.root + 'Manifest.lock.bak'
+                # As config is a singleton, sandbox_root refer to the standard sandbox.
+                return PrebuildSandbox.from_standard_sanbox_path(sandbox_root).root + 'Manifest.lock.tmp'
             else
                 return old_method.bind(self).()
             end
