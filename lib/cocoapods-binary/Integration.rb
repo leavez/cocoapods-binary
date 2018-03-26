@@ -2,6 +2,12 @@ require_relative 'podfile_options'
 require_relative 'feature_switches'
 require_relative 'prebuild_sandbox'
 
+# NOTE:
+# This file will only be loaded on normal pod install step
+# so there's no need to check is_prebuild_stage
+
+
+
 # Provide a special "download" process for prebuilded pods.
 #
 # As the frameworks is already exsited in local folder. We
@@ -62,21 +68,17 @@ module Pod
         old_method2 = instance_method(:resolve_dependencies)
         define_method(:resolve_dependencies) do
 
-            if Pod.is_prebuild_stage
-                old_method2.bind(self).()
-            else
-                # Remove the old target files, else it will not notice file changes
-                self.remove_target_files_if_needed
-                old_method2.bind(self).()
+            # Remove the old target files, else it will not notice file changes
+            self.remove_target_files_if_needed
+            old_method2.bind(self).()
 
-                self.analysis_result.specifications.each do |spec|
-                    next unless self.prebuild_pod_names.include? spec.name
-                    spec.attributes_hash["vendored_frameworks"] = "#{spec.name}.framework"
-                    spec.attributes_hash["source_files"] = []
+            self.analysis_result.specifications.each do |spec|
+                next unless self.prebuild_pod_names.include? spec.name
+                spec.attributes_hash["vendored_frameworks"] = "#{spec.name}.framework"
+                spec.attributes_hash["source_files"] = []
 
-                    # to avoid the warning of missing license
-                    spec.attributes_hash["license"] = {} 
-                end
+                # to avoid the warning of missing license
+                spec.attributes_hash["license"] = {} 
             end
 
         end
@@ -85,10 +87,6 @@ module Pod
         # Override the download step to skip download and prepare file in target folder
         old_method = instance_method(:install_source_of_pod)
         define_method(:install_source_of_pod) do |pod_name|
-
-            if Pod.is_prebuild_stage
-                return old_method.bind(self).(pod_name)
-            end
 
             # copy from original
             pod_installer = create_pod_installer(pod_name)

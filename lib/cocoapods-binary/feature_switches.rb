@@ -1,3 +1,5 @@
+require_relative 'tool/tool'
+
 module Pod
 
     # a flag that indicate stages
