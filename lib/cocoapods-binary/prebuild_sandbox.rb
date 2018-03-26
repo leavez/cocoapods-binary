@@ -20,7 +20,7 @@ module Pod
         end
 
         def exsited_framework_names
-            [] unless generate_framework_path.exist?
+            return [] unless generate_framework_path.exist?
             generate_framework_path.children.map do |framework_name|
                 extension = File.extname(framework_name)
                 if extension == ".framework"
