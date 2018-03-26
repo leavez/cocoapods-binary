@@ -6,16 +6,68 @@ module Pod
     end
 end
 
+
 # patch prebuild ability
 module Pod
-
-    class_attr_accessor :old_manifest_lock_file
-
     class Installer
+
+        def local_manifest 
+            if not @local_manifest_inited
+                @local_manifest_inited = true
+                raise "This method should be call before generate project" unless self.analysis_result == nil
+                @local_manifest = self.sandbox.manifest
+            end
+            @local_manifest
+        end
+
         
+        # check if need to prebuild
+        def have_compeleted_prebuild_cache?
+            # check if need build frameworks
+            return false if local_manifest == nil
+            
+            changes = local_manifest.detect_changes_with_podfile(podfile)
+            Pod::Prebuild.framework_changes = changes # save the chagnes info for later stage
+            added = changes[:added] || []
+            changed = changes[:changed] || []
+            unchanged = changes[:unchanged] || []
+            
+            unchange_framework_names = added + unchanged
+            exsited_framework_names = sandbox.exsited_framework_names
+            missing = unchanged.select do |pod_name|
+                not exsited_framework_names.include?(pod_name)
+            end
+
+            needed = (added + changed + missing)
+            return needed.empty?
+        end
+        
+        
+        # The install method when have completed cache
+        def install_when_cache_hit!
+            # remove the deleted
+            changes = Pod::Prebuild.framework_changes
+            raise "Chnage shouldn't be nil" if changes == nil
+            deleted = changes[:removed] || []
+            deleted.each do |framework_name|
+                path = sandbox.framework_path_for_pod_name framework_name
+                if path.exist?
+                    path.rmtree
+                    UI.puts "Delete #{framework_name}"
+                end
+            end
+
+            # just print log
+            self.sandbox.exsited_framework_names.each do |name|
+                UI.puts "Using #{name}"
+            end
+        end
+    
+
+        # Build the needed framework files
         def prebuild_frameworks 
 
-            local_manifest = Pod.old_manifest_lock_file
+            local_manifest = self.local_manifest
             sandbox_path = sandbox.root
             existed_framework_folder = sandbox.generate_framework_path
 
@@ -70,51 +122,7 @@ module Pod
 
         end
 
-        # check if need to prebuild
-        old_method = instance_method(:install!)
-        define_method(:install!) do
-            return old_method.bind(self).() unless Pod.is_prebuild_stage
 
-            # check if need build frameworks
-            local_manifest = self.sandbox.manifest
-            Pod::Prebuild.framework_changes = nil
-            return old_method.bind(self).() if local_manifest == nil
-
-            changes = local_manifest.detect_changes_with_podfile(podfile)
-            added = changes[:added] || []
-            changed = changes[:changed] || []
-            unchanged = changes[:unchanged] || []
-            deleted = changes[:removed] || []
-            Pod::Prebuild.framework_changes = changes # save the chagnes info for later stage
-            
-            unchange_framework_names = added + unchanged
-            exsited_framework_names = sandbox.exsited_framework_names
-            missing = unchanged.select do |pod_name|
-                not exsited_framework_names.include?(pod_name)
-            end
-            
-            if (added + changed + missing).empty? 
-                deleted.each do |framework_name|
-                    path = sandbox.framework_path_for_pod_name framework_name
-                    if path.exist?
-                        path.rmtree
-                        UI.puts "Delete #{framework_name}"
-                    end
-                end
-
-                # don't do the install
-                exsited_framework_names.each do |name|
-                    UI.puts "Using #{name}"
-                end
-                return
-            end
-            
-            # normal install
-            # Save manifest before generate a new one
-            Pod.old_manifest_lock_file = local_manifest
-            old_method.bind(self).()
-        end
-        
         # patch the post install hook
         old_method2 = instance_method(:run_plugins_post_install_hooks)
         define_method(:run_plugins_post_install_hooks) do 
