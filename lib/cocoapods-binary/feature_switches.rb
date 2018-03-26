@@ -67,7 +67,7 @@ module Pod
     # option to disable write lockfiles
     class Config
 
-        @@force_disable_write_lockfile
+        @@force_disable_write_lockfile = false
         def self.force_disable_write_lockfile(value)
             @@force_disable_write_lockfile = value
         end
