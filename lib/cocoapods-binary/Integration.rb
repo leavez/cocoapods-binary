@@ -47,12 +47,17 @@ module Pod
         def remove_target_files_if_needed
 
             changes = Pod::Prebuild.framework_changes
-            return if changes == nil
-            added = changes[:added] || []
-            changed = changes[:changed] || []
-            deleted = changes[:removed] || []
+            updated_names = []
+            if changes == nil
+                updated_names = PrebuildSandbox.from_standard_sandbox(self.sandbox).exsited_framework_names
+            else
+                added = changes[:added] || []
+                changed = changes[:changed] || []
+                deleted = changes[:removed] || []
+                updated_names = added + changed + deleted
+            end
 
-            (added + changed + deleted).each do |name|
+            updated_names.each do |name|
                 root_name = Specification.root_name(name)
                 next if self.sandbox.local?(root_name)
 
