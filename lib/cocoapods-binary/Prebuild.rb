@@ -22,15 +22,17 @@ module Pod
 
         
         # check if need to prebuild
-        def have_compeleted_prebuild_cache?
+        def have_exact_prebuild_cache?
             # check if need build frameworks
             return false if local_manifest == nil
             
             changes = local_manifest.detect_changes_with_podfile(podfile)
+            puts changes
             Pod::Prebuild.framework_changes = changes # save the chagnes info for later stage
             added = changes[:added] || []
             changed = changes[:changed] || []
             unchanged = changes[:unchanged] || []
+            deleted = changes[:removed] || []
             
             unchange_framework_names = added + unchanged
             exsited_framework_names = sandbox.exsited_framework_names
@@ -38,25 +40,13 @@ module Pod
                 not exsited_framework_names.include?(pod_name)
             end
 
-            needed = (added + changed + missing)
+            needed = (added + changed + deleted + missing)
             return needed.empty?
         end
         
         
         # The install method when have completed cache
         def install_when_cache_hit!
-            # remove the deleted
-            changes = Pod::Prebuild.framework_changes
-            raise "Chnage shouldn't be nil" if changes == nil
-            deleted = changes[:removed] || []
-            deleted.each do |framework_name|
-                path = sandbox.framework_path_for_pod_name framework_name
-                if path.exist?
-                    path.rmtree
-                    UI.puts "Delete #{framework_name}"
-                end
-            end
-
             # just print log
             self.sandbox.exsited_framework_names.each do |name|
                 UI.puts "Using #{name}"
