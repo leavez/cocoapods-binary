@@ -64,6 +64,9 @@ module Pod
                 # delete the cached files
                 target_path = self.sandbox.pod_dir(root_name)
                 target_path.rmtree if target_path.exist?
+
+                support_path = sandbox.target_support_files_dir(root_name)
+                support_path.rmtree if support_path.exist?
             end
 
         end
