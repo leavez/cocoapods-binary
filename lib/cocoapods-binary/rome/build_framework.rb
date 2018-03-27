@@ -16,8 +16,8 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator)
   
   target_label = target.label
   Pod::UI.puts "Prebuilding #{target_label}..."
-  xcodebuild(sandbox, target_label, device, deployment_target)
-  xcodebuild(sandbox, target_label, simulator, deployment_target)
+  xcodebuild(sandbox, target_label, device, deployment_target, 'OTHER_CFLAGS="-fembed-bitcode"')
+  xcodebuild(sandbox, target_label, simulator, deployment_target, 'OTHER_CFLAGS="-fembed-bitcode"')
 
   root_name = target.pod_name
   module_name = target.product_module_name
@@ -38,8 +38,8 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator)
   FileUtils.rm device_lib if File.file?(device_lib)
 end
 
-def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil)
-  args = %W(-project #{sandbox.project_path.realdirpath} -scheme #{target} -configuration #{CONFIGURATION} -sdk #{sdk})
+def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, other_options=nil)
+  args = %W(-project #{sandbox.project_path.realdirpath} -scheme #{target} -configuration #{CONFIGURATION} -sdk #{sdk} #{other_options})
   platform = PLATFORMS[sdk]
   args += Fourflusher::SimControl.new.destination(:oldest, platform, deployment_target) unless platform.nil?
   Pod::Executable.execute_command 'xcodebuild', args, true
