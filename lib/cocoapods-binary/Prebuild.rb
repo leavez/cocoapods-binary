@@ -27,7 +27,6 @@ module Pod
             return false if local_manifest == nil
             
             changes = local_manifest.detect_changes_with_podfile(podfile)
-            puts changes
             Pod::Prebuild.framework_changes = changes # save the chagnes info for later stage
             added = changes[:added] || []
             changed = changes[:changed] || []
