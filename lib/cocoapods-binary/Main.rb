@@ -2,6 +2,24 @@
 
 require_relative 'podfile_options'
 
+module Pod    
+    class Podfile
+        module DSL
+            
+            # enable bitcode for prebuilt frameworks
+            def enable_bitcode_for_prebuilt_frameworks!
+                @@bitcode_enabled = true
+            end
+
+            private
+            @@bitcode_enabled = false
+            def self.is_bitcode_enabled
+                @@bitcode_enabled
+            end
+        end
+    end
+end
+
 Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_context|
     
     require_relative 'feature_switches'

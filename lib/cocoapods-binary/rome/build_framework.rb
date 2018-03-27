@@ -11,13 +11,18 @@ PLATFORMS = { 'iphonesimulator' => 'iOS',
 #  @param [PodTarget] target
 #         a specific pod target
 #
-def build_for_iosish_platform(sandbox, build_dir, target, device, simulator)
+def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, bitcode_enabled)
   deployment_target = target.platform.deployment_target.to_s
   
   target_label = target.label
   Pod::UI.puts "Prebuilding #{target_label}..."
-  xcodebuild(sandbox, target_label, device, deployment_target, ['OTHER_CFLAGS="-fembed-bitcode"'])
-  xcodebuild(sandbox, target_label, simulator, deployment_target, ['OTHER_CFLAGS="-fembed-bitcode"', 'ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'])
+  
+  other_options = [] 
+  if bitcode_enabled
+    other_options += ['OTHER_CFLAGS="-fembed-bitcode"']
+  end
+  xcodebuild(sandbox, target_label, device, deployment_target, other_options)
+  xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'])
 
   root_name = target.pod_name
   module_name = target.product_module_name
@@ -62,7 +67,7 @@ module Pod
     #         [Array<PodTarget>] targets
     #         The pod targets to build
     #
-    def self.build(sandbox_root_path, output_path, targets)
+    def self.build(sandbox_root_path, output_path, targets, bitcode_enabled = false)
     
       return unless not targets.empty?
     
@@ -79,7 +84,7 @@ module Pod
     
       targets.each do |target|
         case target.platform.name
-        when :ios then build_for_iosish_platform(sandbox, build_dir, target, 'iphoneos', 'iphonesimulator')
+        when :ios then build_for_iosish_platform(sandbox, build_dir, target, 'iphoneos', 'iphonesimulator', bitcode_enabled)
         when :osx then xcodebuild(sandbox, target.label)
         when :tvos then nil
         when :watchos then nil

@@ -59,6 +59,7 @@ module Pod
             local_manifest = self.local_manifest
             sandbox_path = sandbox.root
             existed_framework_folder = sandbox.generate_framework_path
+            bitcode_enabled = Pod::Podfile::DSL.is_bitcode_enabled
 
             if local_manifest != nil
 
@@ -92,10 +93,10 @@ module Pod
                         pod_target.root_spec.name == pod_name
                     end
                 end
-                Pod::Prebuild.build(sandbox_path, existed_framework_folder, targets)
+                Pod::Prebuild.build(sandbox_path, existed_framework_folder, targets, bitcode_enabled)
                 
             else
-                Pod::Prebuild.build(sandbox_path, existed_framework_folder, self.pod_targets)
+                Pod::Prebuild.build(sandbox_path, existed_framework_folder, self.pod_targets, bitcode_enabled)
             end
 
             # Remove useless files
