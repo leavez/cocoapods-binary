@@ -28,7 +28,11 @@ module Pod
                 target_folder.rmtree if target_folder.exist?
                 target_folder.mkdir unless target_folder.exist?
                 target = target_folder + "#{self.name}.framework"
-                File.symlink(source, target)
+
+
+                # make a relatvie symbol link
+                relative_source = source.relative_path_from(target_folder)
+                FileUtils.ln_sf(relative_source, target)
             end
 
         end
