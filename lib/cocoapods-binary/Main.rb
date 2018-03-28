@@ -82,7 +82,7 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
     Pod::Installer.disable_install_complete_message false
     
     
-    # -- step 2: prebuild framework ---
+    # -- step 2: pod install ---
     # install
     Pod::UI.puts "\n"
     Pod::UI.puts "🤖  Pod Install"
