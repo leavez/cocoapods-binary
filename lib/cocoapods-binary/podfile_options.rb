@@ -47,6 +47,7 @@ end
 
 module Pod
     class Installer
+        # the root names who needs prebuild
         def prebuild_pod_names 
             @prebuild_pod_names ||= self.podfile.target_definition_list.map(&:prebuild_framework_names).flatten.uniq
         end

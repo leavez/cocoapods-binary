@@ -12,23 +12,23 @@ module Pod
         end
         
         def generate_framework_path
-            self.root + "Frameworks"
+            self.root + "GeneratedFrameworks"
         end
 
-        def framework_path_for_pod_name(name)
-            self.generate_framework_path + "#{name}.framework"
+        def framework_folder_path_for_pod_name(name)
+            self.generate_framework_path + name
         end
 
         def exsited_framework_names
             return [] unless generate_framework_path.exist?
-            generate_framework_path.children.map do |framework_name|
-                extension = File.extname(framework_name)
-                if extension == ".framework"
-                    File.basename(framework_name, extension)
+            generate_framework_path.children().map do |framework_name|
+                if framework_name.directory?
+                    File.basename(framework_name)
                 else
                     nil
                 end
             end.reject(&:nil?)
         end
+
     end
 end

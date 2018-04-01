@@ -18,21 +18,24 @@ module Pod
         class PodSourceInstaller
 
             def install_for_prebuild!(standard_sanbox)
-                # make a symlink to target folder
-                prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sanbox)
-                source = prebuild_sandbox.framework_path_for_pod_name self.name
-
-                target_folder = standard_sanbox.pod_dir(self.name)
                 return if standard_sanbox.local? self.name
 
+                # make a symlink to target folder
+                prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sanbox)
+                folder = prebuild_sandbox.framework_folder_path_for_pod_name(self.name)
+
+                target_folder = standard_sanbox.pod_dir(self.name)
                 target_folder.rmtree if target_folder.exist?
-                target_folder.mkdir unless target_folder.exist?
-                target = target_folder + "#{self.name}.framework"
+                target_folder.mkdir
 
-
-                # make a relatvie symbol link
-                relative_source = source.relative_path_from(target_folder)
-                FileUtils.ln_sf(relative_source, target)
+                # make a relatvie symbol link for all children
+                folder.children.each do |child|
+                    source = child
+                    target = target_folder + File.basename(source)
+                    
+                    relative_source = source.relative_path_from(target.parent)
+                    FileUtils.ln_sf(relative_source, target)
+                end
             end
 
         end
@@ -84,9 +87,20 @@ module Pod
             self.remove_target_files_if_needed
             old_method2.bind(self).()
 
-            self.analysis_result.specifications.each do |spec|
-                next unless self.prebuild_pod_names.include? spec.name
-                spec.attributes_hash["vendored_frameworks"] = "#{spec.name}.framework"
+            root_specs = self.analysis_result.specifications.map { |spec| spec.root }.uniq
+            root_specs_needs_prebuild = root_specs.select do |spec|
+                self.prebuild_pod_names.include? spec.name
+            end
+            
+            # make sturcture to fast get target by name
+            name_to_target_hash = self.pod_targets.reduce({}) do |sum, target|
+                sum[target.name] = target
+                sum
+            end
+
+            root_specs_needs_prebuild.each do |spec|
+                target = name_to_target_hash[spec.name]
+                spec.attributes_hash["vendored_frameworks"] = target.framework_name
                 spec.attributes_hash["source_files"] = []
 
                 # to avoid the warning of missing license

@@ -61,6 +61,7 @@ module Pod
             existed_framework_folder = sandbox.generate_framework_path
             bitcode_enabled = Pod::Podfile::DSL.is_bitcode_enabled
 
+            targets = []
             if local_manifest != nil
 
                 changes = local_manifest.detect_changes_with_podfile(podfile)
@@ -79,7 +80,7 @@ module Pod
                     not unchange_framework_names.include?(framework_name)
                 end
                 to_delete.each do |framework_name|
-                    path = sandbox.framework_path_for_pod_name framework_name
+                    path = sandbox.framework_folder_path_for_pod_name(framework_name)
                     path.rmtree if path.exist?
                 end
     
@@ -93,12 +94,20 @@ module Pod
                         pod_target.root_spec.name == pod_name
                     end
                 end
-                Pod::Prebuild.build(sandbox_path, existed_framework_folder, targets, bitcode_enabled)
-                
             else
-                Pod::Prebuild.build(sandbox_path, existed_framework_folder, self.pod_targets, bitcode_enabled)
+                targets = self.pod_targets
             end
-
+            
+            # build!
+            Pod::UI.puts "Prebuild frameworks (total #{targets.count})"
+            Pod::Prebuild.remove_build_dir(sandbox_path)
+            targets.each do |target|
+                output_path = sandbox.framework_folder_path_for_pod_name(target.name)
+                output_path.mkpath unless output_path.exist?
+                Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled)
+            end            
+            Pod::Prebuild.remove_build_dir(sandbox_path)
+            
             # Remove useless files
             # only keep manifest.lock and framework folder
             to_remain_files = ["Manifest.lock", File.basename(existed_framework_folder)]
