@@ -79,7 +79,7 @@ module Pod
                     not unchange_framework_names.include?(framework_name)
                 end
                 to_delete.each do |framework_name|
-                    path = sandbox.framework_path_for_pod_name framework_name
+                    path = sandbox.framework_folder_path_for_pod_name(framework_name)
                     path.rmtree if path.exist?
                 end
     
