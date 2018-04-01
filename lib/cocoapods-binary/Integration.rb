@@ -84,9 +84,20 @@ module Pod
             self.remove_target_files_if_needed
             old_method2.bind(self).()
 
-            self.analysis_result.specifications.each do |spec|
-                next unless self.prebuild_pod_names.include? spec.name
-                spec.attributes_hash["vendored_frameworks"] = "#{spec.name}.framework"
+            root_specs = self.analysis_result.specifications.map { |spec| spec.root }.uniq
+            root_specs_needs_prebuild = root_specs.select do |spec|
+                self.prebuild_pod_names.include? spec.name
+            end
+            
+            # make sturcture to fast get target by name
+            name_to_target_hash = self.pod_targets.reduce({}) do |sum, target|
+                sum[target.name] = target
+                sum
+            end
+
+            root_specs_needs_prebuild.each do |spec|
+                target = name_to_target_hash[spec.name]
+                spec.attributes_hash["vendored_frameworks"] = target.framework_name
                 spec.attributes_hash["source_files"] = []
 
                 # to avoid the warning of missing license
