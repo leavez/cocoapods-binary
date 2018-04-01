@@ -89,10 +89,18 @@ module Pod
                     not exsited_framework_names.include?(pod_name)
                 end
 
-                targets = (added + changed + missing).map do |pod_name|
-                    self.pod_targets.find do |pod_target|
-                        pod_target.root_spec.name == pod_name
-                    end
+
+                name_to_target_hash = self.pod_targets.reduce({}) do |sum, target|
+                    sum[target.name] = target
+                    sum
+                end
+
+                root_names_to_update = ((added + changed + missing).map do |pod_name|
+                    Specification.root_name(pod_name)
+                end).uniq
+
+                targets = root_names_to_update.map do |root_name|
+                    name_to_target_hash[root_name]
                 end
             else
                 targets = self.pod_targets
@@ -119,6 +127,7 @@ module Pod
                 path.rmtree if path.exist?
             end
 
+            
         end
 
 
