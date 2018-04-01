@@ -18,21 +18,24 @@ module Pod
         class PodSourceInstaller
 
             def install_for_prebuild!(standard_sanbox)
-                # make a symlink to target folder
-                prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sanbox)
-                source = prebuild_sandbox.framework_path_for_pod_name self.name
-
-                target_folder = standard_sanbox.pod_dir(self.name)
                 return if standard_sanbox.local? self.name
 
+                # make a symlink to target folder
+                prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sanbox)
+                folder = prebuild_sandbox.framework_folder_path_for_pod_name(self.name)
+
+                target_folder = standard_sanbox.pod_dir(self.name)
                 target_folder.rmtree if target_folder.exist?
-                target_folder.mkdir unless target_folder.exist?
-                target = target_folder + "#{self.name}.framework"
+                target_folder.mkdir
 
-
-                # make a relatvie symbol link
-                relative_source = source.relative_path_from(target_folder)
-                FileUtils.ln_sf(relative_source, target)
+                # make a relatvie symbol link for all children
+                folder.children.each do |child|
+                    source = child
+                    target = target_folder + File.basename(source)
+                    
+                    relative_source = source.relative_path_from(target.parent)
+                    FileUtils.ln_sf(relative_source, target)
+                end
             end
 
         end
