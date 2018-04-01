@@ -1,6 +1,4 @@
 require 'fourflusher'
-require_relative '../feature_switches'
-
 
 CONFIGURATION = "Release"
 PLATFORMS = { 'iphonesimulator' => 'iOS',
@@ -11,7 +9,14 @@ PLATFORMS = { 'iphonesimulator' => 'iOS',
 #  @param [PodTarget] target
 #         a specific pod target
 #
-def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, bitcode_enabled)
+def build_for_iosish_platform(sandbox, 
+                              build_dir, 
+                              output_path,
+                              target, 
+                              device, 
+                              simulator,
+                              bitcode_enabled)
+
   deployment_target = target.platform.deployment_target.to_s
   
   target_label = target.label
@@ -38,7 +43,8 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, bit
   puts lipo_log unless File.exist?(executable_path)
 
   FileUtils.mv executable_path, device_lib, :force => true
-  FileUtils.mv device_framework_lib, build_dir, :force => true
+  output_path.mkpath unless output_path.exist?
+  FileUtils.mv device_framework_lib, output_path, :force => true
   FileUtils.rm simulator_lib if File.file?(simulator_lib)
   FileUtils.rm device_lib if File.file?(device_lib)
 end
@@ -61,61 +67,59 @@ module Pod
     # @param  [String] sandbox_root_path
     #         The sandbox root path where the targets project place
     #         
+    #         [PodTarget] target
+    #         The pod targets to build
+    #
     #         [Pathname] output_path
     #         output path for generated frameworks
     #
-    #         [Array<PodTarget>] targets
-    #         The pod targets to build
-    #
-    def self.build(sandbox_root_path, output_path, targets, bitcode_enabled = false)
+    def self.build(sandbox_root_path, target, output_path, bitcode_enabled = false)
     
-      return unless not targets.empty?
+      return unless not target == nil
     
       sandbox_root = Pathname(sandbox_root_path)
       sandbox = Pod::Sandbox.new(sandbox_root)
-    
-      build_dir = sandbox_root.parent + 'build'
-      destination = output_path
-    
-      build_dir.rmtree if build_dir.directory?
+      build_dir = self.build_dir(sandbox_root)
 
-
-      Pod::UI.puts "Prebuild frameworks (total #{targets.count})"
-    
-      targets.each do |target|
-        case target.platform.name
-        when :ios then build_for_iosish_platform(sandbox, build_dir, target, 'iphoneos', 'iphonesimulator', bitcode_enabled)
-        when :osx then xcodebuild(sandbox, target.label)
-        when :tvos then nil
-        when :watchos then nil
-        # when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
-        # when :watchos then build_for_iosish_platform(sandbox, build_dir, target, 'watchos', 'watchsimulator')
-        else raise "Unknown platform '#{target.platform.name}'" end
-      end
+      # -- build the framework
+      case target.platform.name
+      when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled)
+      when :osx then xcodebuild(sandbox, target.label)
+      # when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
+      # when :watchos then build_for_iosish_platform(sandbox, build_dir, target, 'watchos', 'watchsimulator')
+      else raise "Unsupported platform for '#{target.name}': '#{target.platform.name}'" end
     
       raise Pod::Informative, 'The build directory was not found in the expected location.' unless build_dir.directory?
+
+      # # --- copy the vendored libraries and framework
+      # frameworks = build_dir.children.select{ |path| File.extname(path) == ".framework" }
+      # Pod::UI.puts "Built #{frameworks.count} #{'frameworks'.pluralize(frameworks.count)}"
     
-      # Make sure the device target overwrites anything in the simulator build, otherwise iTunesConnect
-      # can get upset about Info.plist containing references to the simulator SDK
-      frameworks = build_dir.children.select{ |path| File.extname(path) == ".framework" }
-      Pod::UI.puts "Built #{frameworks.count} #{'frameworks'.pluralize(frameworks.count)}"
+      # pod_target = target
+      # consumer = pod_target.root_spec.consumer(pod_target.platform.name)
+      # file_accessor = Pod::Sandbox::FileAccessor.new(sandbox.pod_dir(pod_target.pod_name), consumer)
+      # frameworks += file_accessor.vendored_libraries
+      # frameworks += file_accessor.vendored_frameworks
+
+      # frameworks.uniq!
     
-      targets.each do |pod_target|
-          consumer = pod_target.root_spec.consumer(pod_target.platform.name)
-          file_accessor = Pod::Sandbox::FileAccessor.new(sandbox.pod_dir(pod_target.pod_name), consumer)
-          frameworks += file_accessor.vendored_libraries
-          frameworks += file_accessor.vendored_frameworks
-      end
-      frameworks.uniq!
+      # frameworks.each do |framework|
+      #   FileUtils.mkdir_p destination
+      #   FileUtils.cp_r framework, destination, :remove_destination => true
+      # end
+      # build_dir.rmtree if build_dir.directory?
+    end
     
-      Pod::UI.puts "Copying #{frameworks.count} #{'frameworks'.pluralize(frameworks.count)} " \
-        "to `#{destination.relative_path_from Pathname.pwd}`"
+    def self.remove_build_dir(sandbox_root)
+      path = build_dir(sandbox_root)
+      path.rmtree if path.exist?
+    end
+
+    private 
     
-      frameworks.each do |framework|
-        FileUtils.mkdir_p destination
-        FileUtils.cp_r framework, destination, :remove_destination => true
-      end
-      build_dir.rmtree if build_dir.directory?
+    def self.build_dir(sandbox_root)
+      # don't know why xcode chose this folder
+      sandbox_root.parent + 'build' 
     end
 
   end

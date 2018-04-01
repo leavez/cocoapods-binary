@@ -12,7 +12,7 @@ module Pod
         end
         
         def generate_framework_path
-            self.root + "Frameworks"
+            self.root + "GeneratedFrameworks"
         end
 
         def framework_folder_path_for_pod_name(name)
