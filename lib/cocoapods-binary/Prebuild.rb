@@ -112,11 +112,30 @@ module Pod
             Pod::UI.puts "Prebuild frameworks (total #{targets.count})"
             Pod::Prebuild.remove_build_dir(sandbox_path)
             targets.each do |target|
+                next unless target.should_build?
                 output_path = sandbox.framework_folder_path_for_pod_name(target.name)
                 output_path.mkpath unless output_path.exist?
                 Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled)
             end            
             Pod::Prebuild.remove_build_dir(sandbox_path)
+
+
+            # copy vendored libraries and frameworks
+            targets.each do |target|
+                root_path = self.sandbox.pod_dir(target.name)
+                target.spec_consumers.each do |consumer|
+                    file_accessor = Sandbox::FileAccessor.new(root_path, consumer)
+                    lib_paths = file_accessor.vendored_frameworks || []
+                    lib_paths += file_accessor.vendored_libraries
+                    # @TODO dSYM files
+                    lib_paths.each do |lib_path|
+                        relative = lib_path.relative_path_from(root_path)
+                        destination = sandbox.framework_folder_path_for_pod_name(target.name) + relative
+                        destination.dirname.mkpath unless destination.dirname.exist?
+                        FileUtils.cp_r(lib_path, destination, :remove_destination => true)
+                    end
+                end
+            end
             
             # Remove useless files
             # only keep manifest.lock and framework folder
