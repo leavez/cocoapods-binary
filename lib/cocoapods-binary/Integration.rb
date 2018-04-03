@@ -58,9 +58,9 @@ module Pod
             if changes == nil
                 updated_names = PrebuildSandbox.from_standard_sandbox(self.sandbox).exsited_framework_names
             else
-                added = changes[:added] || []
-                changed = changes[:changed] || []
-                deleted = changes[:removed] || []
+                added = changes.added
+                changed = changes.changed 
+                deleted = changes.deleted 
                 updated_names = added + changed + deleted
             end
 

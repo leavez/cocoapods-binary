@@ -27,20 +27,21 @@ module Pod
             return false if local_manifest == nil
             
             changes = local_manifest.detect_changes_with_podfile(podfile)
+            changes = Analyzer::SpecsState.new(changes)
             Pod::Prebuild.framework_changes = changes # save the chagnes info for later stage
-            added = (changes[:added] || []).map{|n|Specification.root_name(n)}.uniq
-            changed = (changes[:changed] || []).map{|n|Specification.root_name(n)}.uniq
-            unchanged = (changes[:unchanged] || []).map{|n|Specification.root_name(n)}.uniq
-            deleted = (changes[:removed] || []).map{|n|Specification.root_name(n)}.uniq
+            added = changes.added
+            changed = changes.changed 
+            unchanged = changes.unchanged
+            deleted = changes.deleted 
             
-            unchange_framework_names = (added + unchanged).uniq
+            unchange_framework_names = (added + unchanged)
 
             exsited_framework_names = sandbox.exsited_framework_names
             missing = unchanged.select do |pod_name|
                 not exsited_framework_names.include?(pod_name)
             end
 
-            needed = (added + changed + deleted + missing).uniq
+            needed = (added + changed + deleted + missing)
             return needed.empty?
         end
         
@@ -66,18 +67,18 @@ module Pod
             if local_manifest != nil
 
                 changes = local_manifest.detect_changes_with_podfile(podfile)
-                added = (changes[:added] || []).map{|n|Specification.root_name(n)}.uniq
-                changed = (changes[:changed] || []).map{|n|Specification.root_name(n)}.uniq
-                unchanged = (changes[:unchanged] || []).map{|n|Specification.root_name(n)}.uniq
-                deleted = (changes[:removed] || []).map{|n|Specification.root_name(n)}.uniq
-
+                changes = Analyzer::SpecsState.new(changes)
+                added = changes.added
+                changed = changes.changed 
+                unchanged = changes.unchanged
+                deleted = changes.deleted 
     
                 existed_framework_folder.mkdir unless existed_framework_folder.exist?
                 exsited_framework_names = sandbox.exsited_framework_names
                 
                 # deletions
                 # remove all frameworks except ones to remain
-                unchange_framework_names = (added + unchanged).uniq
+                unchange_framework_names = (added + unchanged)
                 to_delete = exsited_framework_names.select do |framework_name|
                     not unchange_framework_names.include?(framework_name)
                 end
@@ -93,7 +94,7 @@ module Pod
 
 
                 
-                root_names_to_update = (added + changed + missing).uniq
+                root_names_to_update = (added + changed + missing)
 
                 name_to_target_hash = self.pod_targets.reduce({}) do |sum, target|
                     sum[target.name] = target
