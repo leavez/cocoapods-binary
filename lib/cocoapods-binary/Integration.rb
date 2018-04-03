@@ -104,7 +104,12 @@ module Pod
 
                 # use the prebuilt framework
                 target = name_to_target_hash[root_name]
-                spec.attributes_hash["vendored_frameworks"] = target.framework_name
+                original_vendored_frameworks = spec.attributes_hash["vendored_frameworks"] || []
+                if original_vendored_frameworks.kind_of?(String)
+                    original_vendored_frameworks = [original_vendored_frameworks]
+                end
+                original_vendored_frameworks += [target.framework_name]
+                spec.attributes_hash["vendored_frameworks"] = original_vendored_frameworks
                 spec.attributes_hash["source_files"] = []
 
                 # to avoid the warning of missing license
