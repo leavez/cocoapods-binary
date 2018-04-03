@@ -58,9 +58,9 @@ module Pod
             if changes == nil
                 updated_names = PrebuildSandbox.from_standard_sandbox(self.sandbox).exsited_framework_names
             else
-                added = changes[:added] || []
-                changed = changes[:changed] || []
-                deleted = changes[:removed] || []
+                added = changes.added
+                changed = changes.changed 
+                deleted = changes.deleted 
                 updated_names = added + changed + deleted
             end
 
@@ -87,10 +87,10 @@ module Pod
             self.remove_target_files_if_needed
             old_method2.bind(self).()
 
-            root_specs = self.analysis_result.specifications.map { |spec| spec.root }.uniq
-            root_specs_needs_prebuild = root_specs.select do |spec|
-                self.prebuild_pod_names.include? spec.name
-            end
+            specs = self.analysis_result.specifications
+            prebuilt_specs = (specs.select do |spec|
+                self.prebuild_pod_names.include? spec.root.name
+            end)
             
             # make sturcture to fast get target by name
             name_to_target_hash = self.pod_targets.reduce({}) do |sum, target|
@@ -98,8 +98,12 @@ module Pod
                 sum
             end
 
-            root_specs_needs_prebuild.each do |spec|
-                target = name_to_target_hash[spec.name]
+            prebuilt_specs.each do |spec|
+                # `spec` may be a subspec, so we use the root's name 
+                root_name = spec.root.name
+
+                # use the prebuilt framework
+                target = name_to_target_hash[root_name]
                 spec.attributes_hash["vendored_frameworks"] = target.framework_name
                 spec.attributes_hash["source_files"] = []
 
