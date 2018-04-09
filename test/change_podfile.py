@@ -22,7 +22,7 @@ def save_to_podfile(text):
 def initial():
     return wrapper(
 """
-pod Masonry
+pod "Masonry"
 """)
 
 def addSwiftPod():
