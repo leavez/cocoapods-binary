@@ -1,0 +1,15 @@
+# references:
+# * http://www.objc.io/issue-6/travis-ci.html
+# * https://github.com/supermarin/xcpretty#usage
+
+osx_image: xcode9.3beta
+language: objective-c
+cache: cocoapods
+before_install:
+- gem install cocoapods # Since Travis is not always on latest version
+script:
+- cd test
+#
+- python change_podfile.py "initial"
+- pod install
+- xcodebuild test -workspace Binary.xcworkspace -scheme Binary -sdk iphonesimulator10.3 ONLY_ACTIVE_ARCH=YES | xcpretty
