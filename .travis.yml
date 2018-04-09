@@ -1,0 +1,16 @@
+# references:
+# * http://www.objc.io/issue-6/travis-ci.html
+# * https://github.com/supermarin/xcpretty#usage
+
+osx_image: xcode9.3beta
+language: objective-c
+cache: 
+  - cocoapods
+  - bundler
+before_install:
+- gem install cocoapods # Since Travis is not always on latest version
+
+script:
+- rake install
+- cd test
+- sh test.sh
