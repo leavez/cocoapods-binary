@@ -2,6 +2,7 @@
 pkg
 .idea/
 
+test/Pods
 
 ## Various settings
 *.pbxuser
@@ -25,3 +26,7 @@ xcuserdata/
 !*.xcodeproj/xcshareddata/
 !*.xcworkspace/contents.xcworkspacedata
 /*.gcno
+test/Binary.xcworkspace/contents.xcworkspacedata
+test/Binary.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+test/Podfile
+test/Podfile.lock

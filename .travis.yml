@@ -13,7 +13,4 @@ before_install:
 script:
 - rake install
 - cd test
-#
-- python change_podfile.py "initial"
-- pod install
-- xcodebuild test -workspace Binary.xcworkspace -scheme Binary ONLY_ACTIVE_ARCH=YES | xcpretty
+- sh test.sh

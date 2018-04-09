@@ -5,6 +5,7 @@ def wrapper(content):
     return """
 platform :ios, '9.0'
 use_frameworks!
+plugin "cocoapods-binary"
 
 target 'Binary' do
 %s
@@ -49,6 +50,14 @@ pod "lottie-ios", :binary => true
 pod "AFNetworking/Reachability", :binary => true
 """) 
 
+def addVendoredLibPod():
+    return wrapper(
+"""
+pod "Literal", :binary => true
+pod "AFNetworking/Reachability", :binary => true
+pod "Instabug", :binary => true
+""") 
+
 def deleteAPod():
     return wrapper(
 """
@@ -60,6 +69,7 @@ pod "AFNetworking/Reachability", :binary => true
 
 if __name__ == "__main__":
     arg = sys.argv[1]
+    print("change Podfile to: " + arg)
     if arg == "initial":
         save_to_podfile(initial())
     elif arg == "addSwiftPod":
@@ -70,3 +80,5 @@ if __name__ == "__main__":
         save_to_podfile(addSubPod())
     elif arg == "deleteAPod":
         save_to_podfile(deleteAPod())
+    elif arg == "addVendoredLibPod":
+        save_to_podfile(addVendoredLibPod())
