@@ -1,16 +1,22 @@
-# references:
-# * http://www.objc.io/issue-6/travis-ci.html
-# * https://github.com/supermarin/xcpretty#usage
-
-osx_image: xcode9.3beta
+osx_image: xcode9.3
 language: objective-c
-cache: 
-  - cocoapods
-  - bundler
+cache:
+- cocoapods
+- bundler
 before_install:
-- gem install cocoapods # Since Travis is not always on latest version
-
+- gem install cocoapods
 script:
 - rake install
 - cd test
 - sh test.sh
+
+# auto deploy on tagging
+# automatically set by `travis setup rubygems`
+deploy:
+  provider: rubygems
+  api_key:
+    secure: HglQwElI8cEeKc5oXzoVbBBprgb8k7RUr0YOH1N1fhpNW7HJpJtSLzUBPC5T+Sv5RPSicaxY/oXeYE6x4E7Oadf7Gy2tmM9iwwJQh6YgZ/foh9G9obHZtTerhB4wY2cjguBXDmLqiMRiJzNTZRvoUnESBKakPbK/ODY0mHT+LDdMwZk2QsMjD3fRc5M7JRR29jr56jzVuUdy0lR4TRoc2+yIRqp2vFNtcbKdzKuYgzcdE9xzPh0FQzgiImA5uGDruyAgoNeOlGxDPZdnm7fw/epLmq8fUIZanReI30QnJeIErFwMCVeN1zVqQiWRgv8qGi8Z0ZKOzvcu7oKuaeXo5xSkTfkAc9I0LbcRd3UHCluAr9JHuERNwkn1qx5W0DdngTKrPM65ZABQxk4KUHt+5yd6Dv7lR9GrGD3teNZDga/X8u0tQIkoPIl76ZjXRh0bmCDQM/zWaTKkh7eX/YXQKgrjrEecZMeZfsLds789MK2QO17QlbHTVno+HBr0Rah6nHI0/vl1xqHthHCb/Y9SBXmLQ7+ySNXmj7YxPjpD6m8kEEUDTQQdgjS7vMInqJiSekGBImu2VQA/qZP1+WEBha5nX2ADfvsAWfUdsdQfuTbv07RnIG+3quzSl5U1UPVR9f7EsqpTtxflLJCqVdaz2ndQBO6NXAnRhA90cfAFd9s=
+  gem: cocoapods-binary
+  on:
+    tags: true
+    repo: leavez/cocoapods-binary
