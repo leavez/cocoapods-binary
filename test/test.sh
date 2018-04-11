@@ -35,4 +35,9 @@ pod install
 build
 
 #
+python change_podfile.py "universalFlag"
+pod install
+build
+
+#
 exit 0

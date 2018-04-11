@@ -36,6 +36,8 @@ pod "Literal", :binary => true
 def addDifferentNamePod():
     return wrapper(
 """
+enable_bitcode_for_prebuilt_frameworks!
+
 pod "Masonry", :binary => true
 pod "Literal", :binary => true
 pod "lottie-ios", :binary => true
@@ -65,6 +67,16 @@ pod "Literal", :binary => true
 pod "AFNetworking/Reachability", :binary => true
 """) 
 
+def universalFlag():
+    return wrapper(
+"""
+all_binary!
+
+pod "Literal"
+pod "AFNetworking/Reachability"
+""") 
+    
+
 
 
 if __name__ == "__main__":
@@ -82,3 +94,5 @@ if __name__ == "__main__":
         save_to_podfile(deleteAPod())
     elif arg == "addVendoredLibPod":
         save_to_podfile(addVendoredLibPod())
+    elif arg == "universalFlag":
+        save_to_podfile(universalFlag())
