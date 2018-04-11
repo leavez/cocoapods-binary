@@ -67,7 +67,12 @@ module Pod
         # Build the needed framework files
         def prebuild_frameworks! 
 
+            # build options
+            sandbox_path = sandbox.root
+            existed_framework_folder = sandbox.generate_framework_path
+            bitcode_enabled = Pod::Podfile::DSL.is_bitcode_enabled
             targets = []
+            
             if local_manifest != nil
 
                 changes = prebuild_pods_changes
@@ -113,11 +118,6 @@ module Pod
             else
                 targets = self.pod_targets
             end
-
-            # build options
-            sandbox_path = sandbox.root
-            existed_framework_folder = sandbox.generate_framework_path
-            bitcode_enabled = Pod::Podfile::DSL.is_bitcode_enabled
             
             # build!
             Pod::UI.puts "Prebuild frameworks (total #{targets.count})"
