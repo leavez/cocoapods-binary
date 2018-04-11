@@ -23,7 +23,11 @@ module Pod
             return [] unless generate_framework_path.exist?
             generate_framework_path.children().map do |framework_name|
                 if framework_name.directory?
-                    File.basename(framework_name)
+                    if not framework_name.children.empty?
+                        File.basename(framework_name)
+                    else
+                        nil
+                    end
                 else
                     nil
                 end

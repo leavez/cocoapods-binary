@@ -1,15 +1,12 @@
 require_relative 'rome/build_framework'
-
-module Pod    
-    class Prebuild
-        class_attr_accessor :framework_changes
-    end
-end
-
+require_relative 'helper/passer'
 
 # patch prebuild ability
 module Pod
     class Installer
+
+        
+        private
 
         def local_manifest 
             if not @local_manifest_inited
@@ -20,15 +17,27 @@ module Pod
             @local_manifest
         end
 
+        # @return [Analyzer::SpecsState]
+        def prebuild_pods_changes
+            return nil if local_manifest.nil?
+            if @prebuild_pods_changes.nil?
+                changes = local_manifest.detect_changes_with_podfile(podfile)
+                @prebuild_pods_changes = Analyzer::SpecsState.new(changes)
+                # save the chagnes info for later stage
+                Pod::Prebuild::Passer.prebuild_pods_changes = @prebuild_pods_changes 
+            end
+            @prebuild_pods_changes
+        end
+
         
+        public 
+
         # check if need to prebuild
         def have_exact_prebuild_cache?
             # check if need build frameworks
             return false if local_manifest == nil
             
-            changes = local_manifest.detect_changes_with_podfile(podfile)
-            changes = Analyzer::SpecsState.new(changes)
-            Pod::Prebuild.framework_changes = changes # save the chagnes info for later stage
+            changes = prebuild_pods_changes
             added = changes.added
             changed = changes.changed 
             unchanged = changes.unchanged
@@ -56,18 +65,17 @@ module Pod
     
 
         # Build the needed framework files
-        def prebuild_frameworks 
+        def prebuild_frameworks! 
 
-            local_manifest = self.local_manifest
+            # build options
             sandbox_path = sandbox.root
             existed_framework_folder = sandbox.generate_framework_path
             bitcode_enabled = Pod::Podfile::DSL.is_bitcode_enabled
-
             targets = []
+            
             if local_manifest != nil
 
-                changes = local_manifest.detect_changes_with_podfile(podfile)
-                changes = Analyzer::SpecsState.new(changes)
+                changes = prebuild_pods_changes
                 added = changes.added
                 changed = changes.changed 
                 unchanged = changes.unchanged
@@ -93,17 +101,20 @@ module Pod
                 end
 
 
-                
                 root_names_to_update = (added + changed + missing)
 
+                # transform names to targets
                 name_to_target_hash = self.pod_targets.reduce({}) do |sum, target|
                     sum[target.name] = target
                     sum
                 end
-
                 targets = root_names_to_update.map do |root_name|
                     name_to_target_hash[root_name]
-                end
+                end || []
+
+                # add the dendencies
+                dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
+                targets = (targets + dependency_targets).uniq
             else
                 targets = self.pod_targets
             end
@@ -148,16 +159,15 @@ module Pod
                 path.rmtree if path.exist?
             end
 
-            
         end
-
-
+        
+        
         # patch the post install hook
         old_method2 = instance_method(:run_plugins_post_install_hooks)
         define_method(:run_plugins_post_install_hooks) do 
             old_method2.bind(self).()
             if Pod::is_prebuild_stage
-                self.prebuild_frameworks
+                self.prebuild_frameworks!
             end
         end
 

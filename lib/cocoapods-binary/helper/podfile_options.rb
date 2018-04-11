@@ -21,13 +21,20 @@ module Pod
         end
         
         def set_prebuild_for_pod(pod_name, should_prebuild)
-            return unless should_prebuild == true
-            @prebuild_framework_names ||= []
-            @prebuild_framework_names.push pod_name
+            if should_prebuild == true
+                @prebuild_framework_names ||= []
+                @prebuild_framework_names.push pod_name
+            else
+                @should_not_prebuild_framework_names ||= []
+                @should_not_prebuild_framework_names.push pod_name
+            end
         end
 
         def prebuild_framework_names
             @prebuild_framework_names || []
+        end
+        def should_not_prebuild_framework_names
+            @should_not_prebuild_framework_names || []
         end
 
         # ---- patch method ----
@@ -47,26 +54,30 @@ end
 
 module Pod
     class Installer
-        # the root names who needs prebuild
-        def prebuild_pod_names 
-            @prebuild_pod_names ||= self.podfile.target_definition_list.map(&:prebuild_framework_names).flatten.uniq
+        private
+        # the root names who needs prebuild, just the ones specified in podfile, excluding dependency pods.
+        def raw_prebuild_pod_names
+            self.podfile.target_definition_list.map(&:prebuild_framework_names).flatten.uniq
         end
-    end
-end
 
-module Pod
-    class AggregateTarget
-
-        def have_prebuild_pod_targets?
-            prebuild_framework_names = self.target_definition.prebuild_framework_names
-            return (prebuild_framework_names != nil and !prebuild_framework_names.empty?)
-        end
+        
+        public 
 
         def prebuild_pod_targets
-            prebuild_framework_names = self.target_definition.prebuild_framework_names
-            pod_targets = self.pod_targets.select { |pod_target| prebuild_framework_names.include?(pod_target.pod_name) }
-            return pod_targets
+            names = raw_prebuild_pod_names
+            targets = self.pod_targets.select { |pod_target| names.include?(pod_target.pod_name) } || []
+            dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
+            all = targets + dependency_targets
+            all
         end
+
+        # the root names who needs prebuild, including dependency pods.
+        def prebuild_pod_names 
+           @prebuild_pod_names ||= self.prebuild_pod_targets.map(&:pod_name)
+        end
+
     end
 end
+
+
 

@@ -1,6 +1,8 @@
-require_relative 'podfile_options'
-require_relative 'feature_switches'
-require_relative 'prebuild_sandbox'
+require_relative 'helper/podfile_options'
+require_relative 'helper/feature_switches'
+require_relative 'helper/prebuild_sandbox'
+require_relative 'helper/passer'
+
 
 # NOTE:
 # This file will only be loaded on normal pod install step
@@ -50,10 +52,11 @@ end
 module Pod
     class Installer
 
+
         # Remove the old target files if prebuild frameworks changed
         def remove_target_files_if_needed
 
-            changes = Pod::Prebuild.framework_changes
+            changes = Pod::Prebuild::Passer.prebuild_pods_changes
             updated_names = []
             if changes == nil
                 updated_names = PrebuildSandbox.from_standard_sandbox(self.sandbox).exsited_framework_names

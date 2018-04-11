@@ -1,4 +1,4 @@
-require_relative 'tool/tool'
+require_relative '../tool/tool'
 require_relative 'prebuild_sandbox'
 
 module Pod
