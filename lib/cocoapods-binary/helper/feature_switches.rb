@@ -26,6 +26,10 @@ module Pod
                     old_method.bind(self).(name, *args)
                     return
                 end
+                if Pod::Podfile::DSL.prebuild_all
+                    old_method.bind(self).(name, *args)
+                    return
+                end
                 options = args.last
                 return unless options.is_a?(Hash)
                 prebuild = options[Pod::Prebuild.keyword]

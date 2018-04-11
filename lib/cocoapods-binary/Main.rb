@@ -1,27 +1,33 @@
 # encoding: UTF-8
-
 require_relative 'helper/podfile_options'
+require_relative 'tool/tool'
 
 module Pod    
     class Podfile
         module DSL
             
+            # enable prebuiding for all pods
+            def all_binary!
+                DSL.prebuild_all = true
+            end
+
             # enable bitcode for prebuilt frameworks
             def enable_bitcode_for_prebuilt_frameworks!
-                @@bitcode_enabled = true
+                DSL.bitcode_enabled = true
             end
 
             private
-            @@bitcode_enabled = false
-            def self.is_bitcode_enabled
-                @@bitcode_enabled
-            end
+            class_attr_accessor :prebuild_all
+            prebuild_all = false
+
+            class_attr_accessor :bitcode_enabled
+            bitcode_enabled = false
         end
     end
 end
 
 Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_context|
-    
+
     require_relative 'helper/feature_switches'
     if Pod.is_prebuild_stage
         next
