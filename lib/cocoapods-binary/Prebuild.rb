@@ -100,10 +100,13 @@ module Pod
                     sum[target.name] = target
                     sum
                 end
-
                 targets = root_names_to_update.map do |root_name|
                     name_to_target_hash[root_name]
-                end
+                end || []
+
+                # add the dendencies
+                dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
+                targets = (targets + dependency_targets).uniq
             else
                 targets = self.pod_targets
             end

@@ -50,7 +50,7 @@ module Pod
         private
         # the root names who needs prebuild, just the ones specified in podfile, excluding dependency pods.
         def raw_prebuild_pod_names
-            @raw_prebuild_pod_names ||= self.podfile.target_definition_list.map(&:prebuild_framework_names).flatten.uniq
+            self.podfile.target_definition_list.map(&:prebuild_framework_names).flatten.uniq
         end
 
         
@@ -60,7 +60,8 @@ module Pod
             names = raw_prebuild_pod_names
             targets = self.pod_targets.select { |pod_target| names.include?(pod_target.pod_name) } || []
             dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
-            targets + dependency_targets
+            all = targets + dependency_targets
+            all
         end
 
         # the root names who needs prebuild, including dependency pods.
