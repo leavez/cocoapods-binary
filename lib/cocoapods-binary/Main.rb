@@ -6,12 +6,13 @@ module Pod
     class Podfile
         module DSL
             
-            # enable prebuiding for all pods
+            # Enable prebuiding for all pods
+            # it will override all other binary settings
             def all_binary!
                 DSL.prebuild_all = true
             end
 
-            # enable bitcode for prebuilt frameworks
+            # Enable bitcode for prebuilt frameworks
             def enable_bitcode_for_prebuilt_frameworks!
                 DSL.bitcode_enabled = true
             end
