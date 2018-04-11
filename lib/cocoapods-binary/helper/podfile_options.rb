@@ -64,6 +64,8 @@ module Pod
         public 
 
         def prebuild_pod_targets
+            return self.pod_targets if Podfile::DSL.prebuild_all
+
             names = raw_prebuild_pod_names
             targets = self.pod_targets.select { |pod_target| names.include?(pod_target.pod_name) } || []
             dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []

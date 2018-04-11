@@ -70,7 +70,7 @@ module Pod
             # build options
             sandbox_path = sandbox.root
             existed_framework_folder = sandbox.generate_framework_path
-            bitcode_enabled = Pod::Podfile::DSL.is_bitcode_enabled
+            bitcode_enabled = Pod::Podfile::DSL.bitcode_enabled
             targets = []
             
             if local_manifest != nil
