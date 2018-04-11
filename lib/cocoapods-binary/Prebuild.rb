@@ -1,5 +1,5 @@
 require_relative 'rome/build_framework'
-require_relative 'Passer'
+require_relative 'helper/passer'
 
 # patch prebuild ability
 module Pod
@@ -158,7 +158,7 @@ module Pod
             to_delete_files.each do |path|
                 path.rmtree if path.exist?
             end
-            
+
         end
         
         

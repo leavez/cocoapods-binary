@@ -21,13 +21,20 @@ module Pod
         end
         
         def set_prebuild_for_pod(pod_name, should_prebuild)
-            return unless should_prebuild == true
-            @prebuild_framework_names ||= []
-            @prebuild_framework_names.push pod_name
+            if should_prebuild == true
+                @prebuild_framework_names ||= []
+                @prebuild_framework_names.push pod_name
+            else
+                @should_not_prebuild_framework_names ||= []
+                @should_not_prebuild_framework_names.push pod_name
+            end
         end
 
         def prebuild_framework_names
             @prebuild_framework_names || []
+        end
+        def should_not_prebuild_framework_names
+            @should_not_prebuild_framework_names || []
         end
 
         # ---- patch method ----

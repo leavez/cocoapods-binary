@@ -1,7 +1,7 @@
-require_relative 'podfile_options'
-require_relative 'feature_switches'
-require_relative 'prebuild_sandbox'
-require_relative 'Passer'
+require_relative 'helper/podfile_options'
+require_relative 'helper/feature_switches'
+require_relative 'helper/prebuild_sandbox'
+require_relative 'helper/passer'
 
 
 # NOTE:
