@@ -39,6 +39,7 @@ TODO: Add long description of the pod here.
   # s.public_header_files = 'Pod/Classes/**/*.h'
   s.ios.frameworks = 'UIKit', 'MapKit'
   s.watchos.frameworks = 'UIKit', 'MapKit'
+  s.platform = :ios, :watchos
 
   # s.dependency 'AFNetworking', '~> 2.3'
 end
