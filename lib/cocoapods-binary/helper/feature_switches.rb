@@ -26,14 +26,18 @@ module Pod
                     old_method.bind(self).(name, *args)
                     return
                 end
-                if Pod::Podfile::DSL.prebuild_all
-                    old_method.bind(self).(name, *args)
-                    return
-                end
+
+                # patched content
+                should_prebuild = Pod::Podfile::DSL.prebuild_all
+                local = false
+                
                 options = args.last
-                return unless options.is_a?(Hash)
-                prebuild = options[Pod::Prebuild.keyword]
-                if prebuild
+                if options.is_a?(Hash)
+                    should_prebuild ||= options[Pod::Prebuild.keyword]
+                    local = options[:path] != nil
+                end
+
+                if should_prebuild and (not local)
                     old_method.bind(self).(name, *args)
                 end
             end
