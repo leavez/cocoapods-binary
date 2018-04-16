@@ -1,0 +1,22 @@
+{
+  "name": "AAA",
+  "version": "0.1.0",
+  "summary": "A short description of AAA.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://github.com/gaojiji@gmail.com/AAA",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "gaojiji@gmail.com": "gaojiji@gmail.com"
+  },
+  "source": {
+    "git": "https://github.com/gaojiji@gmail.com/AAA.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "AAA/Classes/**/*"
+}

@@ -1,21 +1,29 @@
-# cocoapods-binary
+# AAA
 
-A cocoapods plugin that enables to integrate pod in form of prebuilt framework, not source code, with **just one flag** in podfile. This can dramatically speed up your compile time.
+[![CI Status](http://img.shields.io/travis/gaojiji@gmail.com/AAA.svg?style=flat)](https://travis-ci.org/gaojiji@gmail.com/AAA)
+[![Version](https://img.shields.io/cocoapods/v/AAA.svg?style=flat)](http://cocoapods.org/pods/AAA)
+[![License](https://img.shields.io/cocoapods/l/AAA.svg?style=flat)](http://cocoapods.org/pods/AAA)
+[![Platform](https://img.shields.io/cocoapods/p/AAA.svg?style=flat)](http://cocoapods.org/pods/AAA)
 
-(This project is still in early stage.)
+## Example
+
+To run the example project, clone the repo, and run `pod install` from the Example directory first.
+
+## Requirements
 
 ## Installation
 
-    $ gem install cocoapods-binary
+AAA is available through [CocoaPods](http://cocoapods.org). To install
+it, simply add the following line to your Podfile:
 
-## Usage
-
-Add this in the podfile:
-
-``` ruby
-plugin 'cocoapods-binary'
-
-target "HP" do
-    pod "ExpectoPatronum", :binary => true
-end
+```ruby
+pod 'AAA'
 ```
+
+## Author
+
+gaojiji@gmail.com, gaojiji@gmail.com
+
+## License
+
+AAA is available under the MIT license. See the LICENSE file for more info.
