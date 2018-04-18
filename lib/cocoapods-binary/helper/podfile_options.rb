@@ -21,6 +21,9 @@ module Pod
         end
         
         def set_prebuild_for_pod(pod_name, should_prebuild)
+            # watchos isn't supported currently
+            return if self.platform.name == :watchos
+
             if should_prebuild == true
                 @prebuild_framework_names ||= []
                 @prebuild_framework_names.push pod_name
@@ -69,7 +72,8 @@ module Pod
                 all = self.pod_targets 
             else
                 names = raw_prebuild_pod_names
-                targets = self.pod_targets.select { |pod_target| names.include?(pod_target.pod_name) } || []
+                targets = self.pod_targets.select { |pod_target| pod_target.platform.name != :watchos } # watchos isn't supported currently
+                targets = targets.select { |pod_target| names.include?(pod_target.pod_name) } || []
                 dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
                 all = targets + dependency_targets
             end

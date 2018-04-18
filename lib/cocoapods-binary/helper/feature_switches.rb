@@ -32,12 +32,17 @@ module Pod
                 local = false
                 
                 options = args.last
-                if options.is_a?(Hash)
-                    should_prebuild ||= options[Pod::Prebuild.keyword]
-                    local = options[:path] != nil
+                if options.is_a?(Hash) and options[Pod::Prebuild.keyword] != nil
+                    should_prebuild = options[Pod::Prebuild.keyword]
+                    local = (options[:path] != nil)
                 end
-
+                
                 if should_prebuild and (not local)
+                    if current_target_definition.platform.name == :watchos
+                        # watchos isn't supported currently
+                        Pod::UI.warn "Binary doesn't support watchos currently: #{name}. You can manually set `binary => false` for this pod to suppress this warning."
+                        return
+                    end
                     old_method.bind(self).(name, *args)
                 end
             end

@@ -88,7 +88,21 @@ module Pod
 
             # Remove the old target files, else it will not notice file changes
             self.remove_target_files_if_needed
+
+            # call original
             old_method2.bind(self).()
+
+
+            # check the prebuilt targets 
+            targets = self.prebuild_pod_targets
+            targets_have_different_platforms = targets.select {|t| t.pod_name != t.name }
+
+            if targets_have_different_platforms.count > 0
+                names = targets_have_different_platforms.map(&:pod_name)
+                STDERR.puts "[!] Binary doesn't support pods who integrate in 2 or more platforms simultaneously: #{names}".red
+                exit
+            end
+
 
             specs = self.analysis_result.specifications
             prebuilt_specs = (specs.select do |spec|
