@@ -7,7 +7,7 @@ module Pod
         module DSL
             
             # Enable prebuiding for all pods
-            # it will override all other binary settings
+            # it has a lower priority to other binary settings
             def all_binary!
                 DSL.prebuild_all = true
             end

@@ -21,10 +21,11 @@ module Pod
         end
         
         def set_prebuild_for_pod(pod_name, should_prebuild)
-            # watchos isn't supported currently
-            return if self.platform.name == :watchos
-
+            
             if should_prebuild == true
+                # watchos isn't supported currently
+                return if self.platform.name == :watchos
+
                 @prebuild_framework_names ||= []
                 @prebuild_framework_names.push pod_name
             else
@@ -57,27 +58,33 @@ end
 
 module Pod
     class Installer
-        private
-        # the root names who needs prebuild, just the ones specified in podfile, excluding dependency pods.
-        def raw_prebuild_pod_names
-            self.podfile.target_definition_list.map(&:prebuild_framework_names).flatten.uniq
-        end
-
-        
-        public 
 
         def prebuild_pod_targets
+
             all = []
-            if Podfile::DSL.prebuild_all
-                all = self.pod_targets 
-            else
-                names = raw_prebuild_pod_names
-                targets = self.pod_targets.select { |pod_target| pod_target.platform.name != :watchos } # watchos isn't supported currently
-                targets = targets.select { |pod_target| names.include?(pod_target.pod_name) } || []
+
+            aggregate_targets = self.aggregate_targets.select { |a| a.platform.name != :watchos }
+            aggregate_targets.each do |aggregate_target|
+                target_definition = aggregate_target.target_definition
+                targets = aggregate_target.pod_targets || []
+
+                # filter prebuild
+                prebuild_names = target_definition.prebuild_framework_names
+                if not Podfile::DSL.prebuild_all
+                    targets = targets.select { |pod_target| prebuild_names.include?(pod_target.pod_name) } 
+                end
                 dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
-                all = targets + dependency_targets
+                targets = (targets + dependency_targets).uniq
+
+                # filter should not prebuild
+                explict_should_not_names = target_definition.should_not_prebuild_framework_names
+                targets = targets.reject { |pod_target| explict_should_not_names.include?(pod_target.pod_name) } 
+
+                all += targets
             end
-            all.reject {|pod_target| sandbox.local?(pod_target.pod_name) }
+
+            all = all.reject {|pod_target| sandbox.local?(pod_target.pod_name) }
+            all.uniq
         end
 
         # the root names who needs prebuild, including dependency pods.
