@@ -35,10 +35,18 @@ module Pod
         end
 
         def prebuild_framework_names
-            @prebuild_framework_names || []
+            names = @prebuild_framework_names || []
+            if parent != nil and parent.kind_of? TargetDefinition
+                names += parent.prebuild_framework_names
+            end
+            names
         end
         def should_not_prebuild_framework_names
-            @should_not_prebuild_framework_names || []
+            names = @should_not_prebuild_framework_names || []
+            if parent != nil and parent.kind_of? TargetDefinition
+                names += parent.should_not_prebuild_framework_names
+            end
+            names
         end
 
         # ---- patch method ----
