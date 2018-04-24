@@ -31,12 +31,33 @@ module Pod
                 target_folder.mkdir
 
                 # make a relatvie symbol link for all children
-                folder.children.each do |child|
-                    source = child
-                    target = target_folder + File.basename(source)
-                    
+                def walk(path, &action)
+                    path.children.each do |child|
+                        result = action.call(child, &action)
+                        if child.directory?
+                            walk(child, &action) if result
+                        end
+                    end
+                end
+                def make_link(source, basefolder, target_folder)
+                    target = target_folder + source.relative_path_from(basefolder)
+                    target.parent.mkpath unless target.parent.exist?
                     relative_source = source.relative_path_from(target.parent)
                     FileUtils.ln_sf(relative_source, target)
+                end
+
+                walk(folder) do |child|
+                    source = child
+                    # only make symlink to file and `.framework` folder
+                    if child.directory? and child.extname == ".framework"
+                        make_link(source, folder, target_folder)
+                        next false  # return false means don't go deeper
+                    elsif child.file?
+                        make_link(source, folder, target_folder)
+                        next true
+                    else
+                        next true
+                    end
                 end
             end
 
