@@ -39,7 +39,7 @@ module Pod
                 
                 if should_prebuild and (not local)
                     platform = current_target_definition.platform
-                    if platform != nil and platform.name == :watchos
+                    if !platform.nil? and platform.name == :watchos
                         # watchos isn't supported currently
                         Pod::UI.warn "Binary doesn't support watchos currently: #{name}. You can manually set `binary => false` for this pod to suppress this warning."
                         return
