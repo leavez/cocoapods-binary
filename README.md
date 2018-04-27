@@ -2,9 +2,31 @@
 
 [![Build Status](https://travis-ci.org/leavez/cocoapods-binary.svg?branch=master)](https://travis-ci.org/leavez/cocoapods-binary)
 
-A cocoapods plugin that enables to integrate pod in form of prebuilt framework, not source code, with **just one flag** in podfile. This can dramatically speed up your compile time.
+A CocoaPods plugin to integrate pods in form of prebuilt frameworks, not source code, by adding **just one flag** in podfile. Speed up compiling dramatically.
 
-(This project is still in early stage.)
+## Why
+
+You may wonder why CocoaPods doesn't have a function to integrate libs in form of binaries, if there are dozens or hundreds of pods your podfile and compile them for a great many times meaninglessly. Too many source code of libs slow down your compile and the response of IDE (e.g. code completion), and then reduce work efficiency, giving us time to think about the meaning of life.
+
+This plugin implements this simple wish. Replace the source code in pod target with prebuilt frameworks.
+
+Why don't use Carthage? While Carthage also integrates libs in form of frameworks, there several reasons to use CocoaPods with this plugin:
+
+- Pod is a good simple form to organize files, manage dependencies. (private or local pods)
+- Fast switch between source code and binary, or partial source code, partial binaries.
+- Some libs don't support Carthage.
+
+## How it works
+
+It will compile the source code of pods during the pod install process, and make CocoaPods use them. Which pod should be compiled is controlled by the flag in Podfile.
+
+#### Under the hood
+
+( You could leave this paragraph for further reading, and try it now. )
+
+The plugin will do a separated completed 'Pod install' in the standard pre-install hook. But we filter the pods by the flag in Podfile here. Then build frameworks with this generated project by using xcodebuild. Store the frameworks in `Pods/_Prebuild` and save the manifest.lock file for the next pod install.
+
+Then in the flowing normal install process, we hook the integration functions to modify pod specification to using our frameworks.
 
 ## Installation
 
@@ -12,12 +34,34 @@ A cocoapods plugin that enables to integrate pod in form of prebuilt framework, 
 
 ## Usage
 
-Add this in the podfile:
-
 ``` ruby
 plugin 'cocoapods-binary'
+
+use_frameworks!
+# all_binary!
 
 target "HP" do
     pod "ExpectoPatronum", :binary => true
 end
 ```
+
+- Add `plugin 'cocoapods-binary'` in the head of Podfile 
+- 2 ways:
+  - Add `:binary => true` as a option of one specific pod.
+  - Or add `all_binary!` before all targets. This makes all pods binaries.
+
+if you want to disable binary for a specific pod when using `all_binary!`, place a `:binary => false` to it.
+
+**Note**: cocoapods-binary require `use_frameworks!`. If your worry about the boot time and other problems introduced by dynamic framework, static framework is a good choice. Another [plugin](https://github.com/leavez/cocoapods-static-swift-framework) made by me to make all pods static frameworks is recommended.
+
+#### Known Issue
+
+- doesn't support watchos now
+
+## License
+
+MIT
+
+Appreciate a 🌟 if you like it. 
+
+
