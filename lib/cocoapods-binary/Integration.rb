@@ -24,7 +24,7 @@ module Pod
 
                 # make a symlink to target folder
                 prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sanbox)
-                folder = prebuild_sandbox.framework_folder_path_for_pod_name(self.name)
+                real_file_folder = prebuild_sandbox.framework_folder_path_for_pod_name(self.name)
 
                 target_folder = standard_sanbox.pod_dir(self.name)
                 target_folder.rmtree if target_folder.exist?
@@ -39,24 +39,39 @@ module Pod
                         end
                     end
                 end
-                def make_link(source, basefolder, target_folder)
-                    target = target_folder + source.relative_path_from(basefolder)
+                def make_link(source, target)
+                    source = Pathname.new(source)
+                    target = Pathname.new(target)
                     target.parent.mkpath unless target.parent.exist?
                     relative_source = source.relative_path_from(target.parent)
                     FileUtils.ln_sf(relative_source, target)
                 end
+                def mirror_with_symlink(source, basefolder, target_folder)
+                    target = target_folder + source.relative_path_from(basefolder)
+                    make_link(source, target)
+                end
 
-                walk(folder) do |child|
+                # symbol link copy all substructure
+                walk(real_file_folder) do |child|
                     source = child
                     # only make symlink to file and `.framework` folder
                     if child.directory? and child.extname == ".framework"
-                        make_link(source, folder, target_folder)
+                        mirror_with_symlink(source, real_file_folder, target_folder)
                         next false  # return false means don't go deeper
                     elsif child.file?
-                        make_link(source, folder, target_folder)
+                        mirror_with_symlink(source, real_file_folder, target_folder)
                         next true
                     else
                         next true
+                    end
+                end
+
+                # symbol link copy resource for static framework
+                hash = Prebuild::Passer.resources_to_copy_for_static_framework
+                path_objects = hash[self.name]
+                if path_objects != nil
+                    path_objects.each do |object|
+                        make_link(object.real_file_path, object.target_file_path)
                     end
                 end
             end

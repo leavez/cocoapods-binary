@@ -10,6 +10,10 @@ module Pod
         def self.from_standard_sandbox(sandbox)
             self.from_standard_sanbox_path(sandbox.root)
         end
+
+        def standard_sanbox_path
+            self.root.parent
+        end
         
         def generate_framework_path
             self.root + "GeneratedFrameworks"

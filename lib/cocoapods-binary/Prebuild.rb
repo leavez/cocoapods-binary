@@ -128,9 +128,24 @@ module Pod
             Pod::Prebuild.remove_build_dir(sandbox_path)
             targets.each do |target|
                 next unless target.should_build?
+
                 output_path = sandbox.framework_folder_path_for_pod_name(target.name)
                 output_path.mkpath unless output_path.exist?
                 Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled)
+
+                # save the resource paths for later installing
+                if target.static_framework? and !target.resource_paths.empty?
+                    framework_path = output_path + target.framework_name
+                    standard_sandbox_path = sandbox.standard_sanbox_path
+                    path_objects = target.resource_paths.select{|f| f.start_with? "${PODS_ROOT}"}.map do |path|
+                        object = Prebuild::Passer::ResourcePath.new
+                        object.real_file_path = framework_path + File.basename(path)
+                        object.target_file_path = path.gsub('${PODS_ROOT}', standard_sandbox_path.to_s)
+                        object
+                    end
+                    Prebuild::Passer.resources_to_copy_for_static_framework ||= {}
+                    Prebuild::Passer.resources_to_copy_for_static_framework[target.name] = path_objects
+                end
             end            
             Pod::Prebuild.remove_build_dir(sandbox_path)
 
