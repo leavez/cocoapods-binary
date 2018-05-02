@@ -67,7 +67,7 @@ module Pod
                 end
 
                 # symbol link copy resource for static framework
-                hash = Prebuild::Passer.resources_to_copy_for_static_framework
+                hash = Prebuild::Passer.resources_to_copy_for_static_framework || {}
                 path_objects = hash[self.name]
                 if path_objects != nil
                     path_objects.each do |object|
