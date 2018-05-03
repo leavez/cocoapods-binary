@@ -55,7 +55,7 @@ if you want to disable binary for a specific pod when using `all_binary!`, place
 #### Known Issue
 
 - doesn't support watchos now
-- dSYM files is missing for dynamic frameworks using this plugin
+- dSYM files is missing for dynamic frameworks using this plugin. Walkaround: Don't use this plugin for a release build. Add a if condition with ENV around `plugin 'cocoapods-binary'`
 
 ## License
 
