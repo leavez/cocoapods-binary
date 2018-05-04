@@ -6,7 +6,7 @@ A CocoaPods plugin to integrate pods in form of prebuilt frameworks, not source 
 
 ## Why
 
-You may wonder why CocoaPods doesn't have a function to integrate libs in form of binaries, if there are dozens or hundreds of pods your podfile and compile them for a great many times meaninglessly. Too many source code of libs slow down your compile and the response of IDE (e.g. code completion), and then reduce work efficiency, leaving us time to think about the meaning of life.
+You may wonder why CocoaPods doesn't have a function to integrate libs in form of binaries, if there are dozens or hundreds of pods in your podfile and compile them for a great many times meaninglessly. Too many source code of libs slow down your compile and the response of IDE (e.g. code completion), and then reduce work efficiency, leaving us time to think about the meaning of life.
 
 This plugin implements this simple wish. Replace the source code in pod target with prebuilt frameworks.
 
@@ -47,13 +47,17 @@ end
 
 - Add `plugin 'cocoapods-binary'` in the head of Podfile 
 - Add `:binary => true` as a option of one specific pod, or add `all_binary!` before all targets, which makes all pods binaries.
-- pod install
-
-if you want to disable binary for a specific pod when using `all_binary!`, place a `:binary => false` to it.
+- pod install, and that's all
 
 **Note**: cocoapods-binary require `use_frameworks!`. If your worry about the boot time and other problems introduced by dynamic framework, static framework is a good choice. Another [plugin](https://github.com/leavez/cocoapods-static-swift-framework) made by me to make all pods static frameworks is recommended.
 
-#### Known Issue
+#### Options
+
+If you want to disable binary for a specific pod when using `all_binary!`, place a `:binary => false` to it.
+
+If bitcode is needed, add a `enable_bitcode_for_prebuilt_frameworks!` before all targets in Podfile
+
+#### Known Issues
 
 - doesn't support watchos now
 - dSYM files is missing for dynamic frameworks using this plugin. Walkaround: Don't use this plugin for a release build. Add a if condition with ENV around `plugin 'cocoapods-binary'`
