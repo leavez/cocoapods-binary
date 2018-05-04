@@ -47,6 +47,7 @@ end
 
 - Add `plugin 'cocoapods-binary'` in the head of Podfile 
 - Add `:binary => true` as a option of one specific pod, or add `all_binary!` before all targets, which makes all pods binaries.
+- pod install
 
 if you want to disable binary for a specific pod when using `all_binary!`, place a `:binary => false` to it.
 
