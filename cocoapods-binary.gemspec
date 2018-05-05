@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = CocoapodsBinary::VERSION
   spec.authors       = ['leavez']
   spec.email         = ['gaojiji@gmail.com']
-  spec.description   = %q{A short description of cocoapods-binary.}
-  spec.summary       = %q{A longer description of cocoapods-binary.}
-  spec.homepage      = 'https://github.com/EXAMPLE/cocoapods-binary'
+  spec.description   = %q{integrate pods in form of prebuilt frameworks conveniently, reducing compile time}
+  spec.summary       = %q{A CocoaPods plugin to integrate pods in form of prebuilt frameworks, not source code, by adding just one flag in podfile. Speed up compiling dramatically.}
+  spec.homepage      = 'https://github.com/leavez/cocoapods-binary'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files`.split($/).reject{|f| f.start_with? "test/"}
@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_dependency "cocoapods", ">= 1.4.0", "< 2.0"
+  spec.add_dependency "cocoapods", ">= 1.5.0", "< 2.0"
   spec.add_dependency "fourflusher", "~> 2.0"
 
   spec.add_development_dependency 'bundler', '~> 1.3'
