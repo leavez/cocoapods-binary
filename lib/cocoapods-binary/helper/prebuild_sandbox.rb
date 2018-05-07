@@ -38,5 +38,12 @@ module Pod
             end.reject(&:nil?)
         end
 
+        def framework_existed?(root_name)
+            return false unless generate_framework_path.exist?
+            generate_framework_path.children().any? do |child|
+                child.basename.to_s == root_name
+            end
+        end
+
     end
 end
