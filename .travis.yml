@@ -9,6 +9,7 @@ script:
 - rake install
 - cd test
 - sh test.sh
+- cd ..
 
 # auto deploy on tagging
 # automatically set by `travis setup rubygems`
