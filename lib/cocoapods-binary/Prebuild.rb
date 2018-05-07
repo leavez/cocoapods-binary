@@ -143,7 +143,6 @@ module Pod
                         object.target_file_path = path.gsub('${PODS_ROOT}', standard_sandbox_path.to_s)
                         object
                     end
-                    Prebuild::Passer.resources_to_copy_for_static_framework ||= {}
                     Prebuild::Passer.resources_to_copy_for_static_framework[target.name] = path_objects
                 end
             end            
@@ -158,7 +157,6 @@ module Pod
                 # If target shouldn't build, we copy all the original files
                 # This is for target with only .a and .h files
                 if not target.should_build? 
-                    Prebuild::Passer.target_names_to_skip_integration_framework ||= []
                     Prebuild::Passer.target_names_to_skip_integration_framework << target.pod_name
                     FileUtils.cp_r(root_path, target_folder, :remove_destination => true)
                     next
