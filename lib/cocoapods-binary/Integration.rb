@@ -154,9 +154,11 @@ module Pod
             prebuilt_specs.each do |spec|
                 # `spec` may be a subspec, so we use the root's name 
                 root_name = spec.root.name
+                
+                target = name_to_target_hash[root_name]
+                next if Prebuild::Passer.target_names_to_skip_integration_framework.include? target.pod_name
 
                 # use the prebuilt framework
-                target = name_to_target_hash[root_name]
                 original_vendored_frameworks = spec.attributes_hash["vendored_frameworks"] || []
                 if original_vendored_frameworks.kind_of?(String)
                     original_vendored_frameworks = [original_vendored_frameworks]
