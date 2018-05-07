@@ -58,6 +58,7 @@ def addVendoredLibPod():
 pod "Literal", :binary => true
 pod "AFNetworking/Reachability", :binary => true
 pod "Instabug", :binary => true
+pod "GrowingID", :binary => true
 """) 
 
 def deleteAPod():
