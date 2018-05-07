@@ -26,6 +26,16 @@ module Pod
             #
             # @return [Hash<String, [Passer::ResourcePath]>]
             class_attr_accessor :resources_to_copy_for_static_framework
+            self.resources_to_copy_for_static_framework = {}
+
+            # Some pod won't be build in prebuild stage even if it have `binary=>true`.
+            # The targets of this pods have `oshould_build? == true`.
+            # We should skip integration (patch spec) for this pods
+            #
+            # @return [Array<String>]
+            class_attr_accessor :target_names_to_skip_integration_framework
+            self.target_names_to_skip_integration_framework = []
+
         end
     end
 end

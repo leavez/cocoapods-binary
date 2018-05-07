@@ -16,64 +16,104 @@ def save_to_podfile(text):
     path = os.path.dirname(os.path.abspath(__file__))
     path += "/Podfile"
     file = open(path, "w+")
-    file.write(text)
+    file.write(text[0])
+    file.close()
+
+    path = os.path.dirname(os.path.abspath(__file__))
+    path += "/Binary/import.swift"
+    file = open(path, "w+")
+    file.write(text[1])
     file.close()
 
 
+
 def initial():
-    return wrapper(
+    return (wrapper(
 """
 pod "Masonry"
+"""), 
+"""
+import Masonry
 """)
 
 def addSwiftPod():
-    return wrapper(
+    return (wrapper(
 """
 pod "Masonry", :binary => true
 pod "Literal", :binary => true
+"""), 
+"""
+import Masonry
+import Literal
 """)
 
 def addDifferentNamePod():
-    return wrapper(
+    return (wrapper(
 """
 enable_bitcode_for_prebuilt_frameworks!
 
 pod "Masonry", :binary => true
 pod "Literal", :binary => true
 pod "lottie-ios", :binary => true
+"""), 
+"""
+import Masonry
+import Literal
+import Lottie
 """) 
 
+
 def addSubPod():
-    return wrapper(
+    return (wrapper(
 """
 pod "Masonry", :binary => true
 pod "Literal", :binary => true
 pod "lottie-ios", :binary => true
 pod "AFNetworking/Reachability", :binary => true
+""") , 
+"""
+import Masonry
+import Literal
+import Lottie
+import AFNetworking
 """) 
 
 def addVendoredLibPod():
-    return wrapper(
+    return (wrapper(
 """
 pod "Literal", :binary => true
 pod "AFNetworking/Reachability", :binary => true
 pod "Instabug", :binary => true
+pod "GrowingIO", :binary => true
+""") , 
+"""
+import Literal
+import AFNetworking
+import Instabug
 """) 
 
 def deleteAPod():
-    return wrapper(
+    return (wrapper(
 """
 pod "Literal", :binary => true
 pod "AFNetworking/Reachability", :binary => true
+""") , 
+"""
+import Literal
+import AFNetworking
 """) 
 
 def universalFlag():
-    return wrapper(
+    return (wrapper(
 """
 all_binary!
 
 pod "Literal"
 pod "AFNetworking/Reachability"
+""") , 
+"""
+import Literal
+import AFNetworking
 """) 
     
 

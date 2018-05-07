@@ -143,7 +143,6 @@ module Pod
                         object.target_file_path = path.gsub('${PODS_ROOT}', standard_sandbox_path.to_s)
                         object
                     end
-                    Prebuild::Passer.resources_to_copy_for_static_framework ||= {}
                     Prebuild::Passer.resources_to_copy_for_static_framework[target.name] = path_objects
                 end
             end            
@@ -153,6 +152,16 @@ module Pod
             # copy vendored libraries and frameworks
             targets.each do |target|
                 root_path = self.sandbox.pod_dir(target.name)
+                target_folder = sandbox.framework_folder_path_for_pod_name(target.name)
+                
+                # If target shouldn't build, we copy all the original files
+                # This is for target with only .a and .h files
+                if not target.should_build? 
+                    Prebuild::Passer.target_names_to_skip_integration_framework << target.pod_name
+                    FileUtils.cp_r(root_path, target_folder, :remove_destination => true)
+                    next
+                end
+
                 target.spec_consumers.each do |consumer|
                     file_accessor = Sandbox::FileAccessor.new(root_path, consumer)
                     lib_paths = file_accessor.vendored_frameworks || []
@@ -160,7 +169,7 @@ module Pod
                     # @TODO dSYM files
                     lib_paths.each do |lib_path|
                         relative = lib_path.relative_path_from(root_path)
-                        destination = sandbox.framework_folder_path_for_pod_name(target.name) + relative
+                        destination = target_folder + relative
                         destination.dirname.mkpath unless destination.dirname.exist?
                         FileUtils.cp_r(lib_path, destination, :remove_destination => true)
                     end
