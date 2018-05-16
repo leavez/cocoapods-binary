@@ -39,13 +39,24 @@ import Masonry
 def addSwiftPod():
     return (wrapper(
 """
-pod "Masonry", :binary => true
+pod "RxCocoa", :binary => true
 pod "Literal", :binary => true
 """), 
 """
-import Masonry
+import RxCocoa
 import Literal
 """)
+
+def revertToSourceCode():
+    return (wrapper(
+"""
+pod "RxCocoa", :binary => true
+pod "Literal"
+"""), 
+"""
+import RxCocoa
+import Literal
+""") 
 
 def addDifferentNamePod():
     return (wrapper(
@@ -122,17 +133,4 @@ import AFNetworking
 if __name__ == "__main__":
     arg = sys.argv[1]
     print("change Podfile to: " + arg)
-    if arg == "initial":
-        save_to_podfile(initial())
-    elif arg == "addSwiftPod":
-        save_to_podfile(addSwiftPod())
-    elif arg == "addDifferentNamePod":
-        save_to_podfile(addDifferentNamePod())
-    elif arg == "addSubPod":
-        save_to_podfile(addSubPod())
-    elif arg == "deleteAPod":
-        save_to_podfile(deleteAPod())
-    elif arg == "addVendoredLibPod":
-        save_to_podfile(addVendoredLibPod())
-    elif arg == "universalFlag":
-        save_to_podfile(universalFlag())
+    save_to_podfile(globals()[arg]())

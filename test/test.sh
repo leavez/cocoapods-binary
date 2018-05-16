@@ -15,6 +15,11 @@ pod install
 build
 
 # 
+python change_podfile.py "revertToSourceCode"
+pod install
+build
+
+# 
 python change_podfile.py "addDifferentNamePod"
 pod install
 build
