@@ -166,15 +166,6 @@ module Pod
             end
             
             # Remove useless files
-            # only keep manifest.lock and framework folder in _Prebuild
-            to_remain_files = ["Manifest.lock", File.basename(existed_framework_folder)]
-            to_delete_files = sandbox_path.children.select do |file|
-                filename = File.basename(file)
-                not to_remain_files.include?(filename)
-            end
-            to_delete_files.each do |path|
-                path.rmtree if path.exist?
-            end
             # remove useless pods
             all_needed_names = self.pod_targets.map(&:name).uniq
             useless_names = sandbox.exsited_framework_names.reject do |name| 
@@ -184,6 +175,24 @@ module Pod
                 path = sandbox.framework_folder_path_for_pod_name(name)
                 path.rmtree if path.exist?
             end
+
+            if not Podfile::DSL.dont_remove_source_code 
+                # only keep manifest.lock and framework folder in _Prebuild
+                to_remain_files = ["Manifest.lock", File.basename(existed_framework_folder)]
+                to_delete_files = sandbox_path.children.select do |file|
+                    filename = File.basename(file)
+                    not to_remain_files.include?(filename)
+                end
+                to_delete_files.each do |path|
+                    path.rmtree if path.exist?
+                end
+            else 
+                # just remove the tmp files
+                path = sandbox.root + 'Manifest.lock.tmp'
+                path.rmtree if path.exist?
+            end
+            
+
 
         end
         

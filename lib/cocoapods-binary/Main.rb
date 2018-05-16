@@ -17,12 +17,22 @@ module Pod
                 DSL.bitcode_enabled = true
             end
 
+            # Don't remove source code of prebuilt pods
+            # It may speed up the pod install if git didn't 
+            # include the `Pods` folder
+            def keep_source_code_for_prebuilt_frameworks!
+                DSL.dont_remove_source_code = true
+            end
+
             private
             class_attr_accessor :prebuild_all
             prebuild_all = false
 
             class_attr_accessor :bitcode_enabled
             bitcode_enabled = false
+
+            class_attr_accessor :dont_remove_source_code
+            dont_remove_source_code = false
         end
     end
 end
