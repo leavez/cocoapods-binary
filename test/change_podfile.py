@@ -30,6 +30,8 @@ def save_to_podfile(text):
 def initial():
     return (wrapper(
 """
+keep_source_code_for_prebuilt_frameworks!
+
 pod "Masonry"
 """), 
 """
@@ -39,6 +41,8 @@ import Masonry
 def addSwiftPod():
     return (wrapper(
 """
+keep_source_code_for_prebuilt_frameworks!
+
 pod "RxCocoa", :binary => true
 pod "Literal", :binary => true
 """), 
@@ -50,6 +54,8 @@ import Literal
 def revertToSourceCode():
     return (wrapper(
 """
+keep_source_code_for_prebuilt_frameworks!
+
 pod "RxCocoa", :binary => true
 pod "Literal"
 """), 
@@ -132,5 +138,5 @@ import AFNetworking
 
 if __name__ == "__main__":
     arg = sys.argv[1]
-    print("change Podfile to: " + arg)
+    print("===================\nchange Podfile to: " + arg + "\n")
     save_to_podfile(globals()[arg]())
