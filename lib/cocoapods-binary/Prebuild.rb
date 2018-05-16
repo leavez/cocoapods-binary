@@ -83,17 +83,6 @@ module Pod
     
                 existed_framework_folder.mkdir unless existed_framework_folder.exist?
                 exsited_framework_names = sandbox.exsited_framework_names
-                
-                # deletions
-                # remove all frameworks except ones to remain
-                unchange_framework_names = (added + unchanged)
-                to_delete = exsited_framework_names.select do |framework_name|
-                    not unchange_framework_names.include?(framework_name)
-                end
-                to_delete.each do |framework_name|
-                    path = sandbox.framework_folder_path_for_pod_name(framework_name)
-                    path.rmtree if path.exist?
-                end
     
                 # additions
                 missing = unchanged.select do |pod_name|
@@ -177,13 +166,22 @@ module Pod
             end
             
             # Remove useless files
-            # only keep manifest.lock and framework folder
+            # only keep manifest.lock and framework folder in _Prebuild
             to_remain_files = ["Manifest.lock", File.basename(existed_framework_folder)]
             to_delete_files = sandbox_path.children.select do |file|
                 filename = File.basename(file)
                 not to_remain_files.include?(filename)
             end
             to_delete_files.each do |path|
+                path.rmtree if path.exist?
+            end
+            # remove useless pods
+            all_needed_names = self.pod_targets.map(&:name).uniq
+            useless_names = sandbox.exsited_framework_names.reject do |name| 
+                all_needed_names.include? name
+            end
+            useless_names.each do |name|
+                path = sandbox.framework_folder_path_for_pod_name(name)
                 path.rmtree if path.exist?
             end
 
