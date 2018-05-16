@@ -55,7 +55,10 @@ end
 
 If you want to disable binary for a specific pod when using `all_binary!`, place a `:binary => false` to it.
 
+If your `Pods` folder is excluded from git, you may add `keep_source_code_for_prebuilt_frameworks!` in the head of Podfile to speed up pod install, as it won't download all the sources every time prebuilt pods have changes.
+
 If bitcode is needed, add a `enable_bitcode_for_prebuilt_frameworks!` before all targets in Podfile
+
 
 #### Known Issues
 
