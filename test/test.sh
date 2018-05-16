@@ -5,6 +5,8 @@ build() {
     xcodebuild -workspace Binary.xcworkspace -scheme Binary ONLY_ACTIVE_ARCH=YES  CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO -quiet || exit 1 
 }
 		
+rm -rf Pods
+
 python change_podfile.py "initial"
 pod install
 build
