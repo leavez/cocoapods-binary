@@ -29,24 +29,34 @@ def build_for_iosish_platform(sandbox,
   xcodebuild(sandbox, target_label, device, deployment_target, other_options)
   xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'])
 
+  # paths
   root_name = target.pod_name
   module_name = target.product_module_name
+  device_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{root_name}/#{module_name}.framework"
+  simulator_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{root_name}/#{module_name}.framework"
+
+  device_binary = device_framwork_path + "/#{module_name}"
+  simulator_binary = simulator_framwork_path + "/#{module_name}"
+  return unless File.file?(device_binary) && File.file?(simulator_binary)
   
-  executable_path = "#{build_dir}/#{root_name}"
-  device_lib = "#{build_dir}/#{CONFIGURATION}-#{device}/#{root_name}/#{module_name}.framework/#{module_name}"
-  device_framework_lib = File.dirname(device_lib)
-  simulator_lib = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{root_name}/#{module_name}.framework/#{module_name}"
+  # the device_lib path is the final output file path
+  # combine the bianries
+  tmp_lipoed_binary_path = "#{build_dir}/#{root_name}"
+  lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_binary} #{simulator_binary}`
+  puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
+  FileUtils.mv tmp_lipoed_binary_path, device_binary, :force => true
+  
+  # collect the swiftmodule file for various archs.
+  device_swiftmodule_path = device_framwork_path + "/Modules/#{module_name}.swiftmodule"
+  simulator_swiftmodule_path = simulator_framwork_path + "/Modules/#{module_name}.swiftmodule"
+  if File.exist?(device_swiftmodule_path)
+    FileUtils.cp_r simulator_swiftmodule_path + "/.", device_swiftmodule_path
+  end
 
-  return unless File.file?(device_lib) && File.file?(simulator_lib)
-
-  lipo_log = `lipo -create -output #{executable_path} #{device_lib} #{simulator_lib}`
-  puts lipo_log unless File.exist?(executable_path)
-
-  FileUtils.mv executable_path, device_lib, :force => true
+  # output
   output_path.mkpath unless output_path.exist?
-  FileUtils.mv device_framework_lib, output_path, :force => true
-  FileUtils.rm simulator_lib if File.file?(simulator_lib)
-  FileUtils.rm device_lib if File.file?(device_lib)
+  FileUtils.mv device_framwork_path, output_path, :force => true
+
 end
 
 def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, other_options=[])
