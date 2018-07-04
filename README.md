@@ -1,4 +1,5 @@
-# cocoapods-binary
+
+<p align="center"><img src="/test/logo.png" width="622"></p>
 
 [![Build Status](https://travis-ci.org/leavez/cocoapods-binary.svg?branch=master)](https://travis-ci.org/leavez/cocoapods-binary)
 
