@@ -23,9 +23,6 @@ module Pod
         def set_prebuild_for_pod(pod_name, should_prebuild)
             
             if should_prebuild == true
-                # watchos isn't supported currently
-                return if self.platform == :watchos
-
                 @prebuild_framework_names ||= []
                 @prebuild_framework_names.push pod_name
             else
@@ -71,7 +68,7 @@ module Pod
 
             all = []
 
-            aggregate_targets = self.aggregate_targets.select { |a| a.platform != :watchos }
+            aggregate_targets = self.aggregate_targets
             aggregate_targets.each do |aggregate_target|
                 target_definition = aggregate_target.target_definition
                 targets = aggregate_target.pod_targets || []
