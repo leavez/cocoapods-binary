@@ -43,8 +43,6 @@ module Pod
             unchanged = changes.unchanged
             deleted = changes.deleted 
             
-            unchange_framework_names = (added + unchanged)
-
             exsited_framework_names = sandbox.exsited_framework_names
             missing = unchanged.select do |pod_name|
                 not exsited_framework_names.include?(pod_name)
@@ -97,9 +95,12 @@ module Pod
                     sum[target.name] = target
                     sum
                 end
-                targets = root_names_to_update.map do |root_name|
-                    name_to_target_hash[root_name]
-                end || []
+                targets = root_names_to_update.map do |pod_name|
+                    possible_target_names = Pod.possible_target_names_from_pod_name(pod_name)
+                    possible_target_names.map do |n|
+                        name_to_target_hash[n]
+                    end.compact
+                end.flatten || []
 
                 # add the dendencies
                 dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
@@ -146,7 +147,7 @@ module Pod
                 # If target shouldn't build, we copy all the original files
                 # This is for target with only .a and .h files
                 if not target.should_build? 
-                    Prebuild::Passer.target_names_to_skip_integration_framework << target.pod_name
+                    Prebuild::Passer.target_names_to_skip_integration_framework << target.name
                     FileUtils.cp_r(root_path, target_folder, :remove_destination => true)
                     next
                 end

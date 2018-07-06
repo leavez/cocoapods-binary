@@ -23,25 +23,25 @@ module Pod
         def set_prebuild_for_pod(pod_name, should_prebuild)
             
             if should_prebuild == true
-                @prebuild_framework_names ||= []
-                @prebuild_framework_names.push pod_name
+                @prebuild_framework_pod_names ||= []
+                @prebuild_framework_pod_names.push pod_name
             else
-                @should_not_prebuild_framework_names ||= []
-                @should_not_prebuild_framework_names.push pod_name
+                @should_not_prebuild_framework_pod_names ||= []
+                @should_not_prebuild_framework_pod_names.push pod_name
             end
         end
 
-        def prebuild_framework_names
-            names = @prebuild_framework_names || []
+        def prebuild_framework_pod_names
+            names = @prebuild_framework_pod_names || []
             if parent != nil and parent.kind_of? TargetDefinition
-                names += parent.prebuild_framework_names
+                names += parent.prebuild_framework_pod_names
             end
             names
         end
-        def should_not_prebuild_framework_names
-            names = @should_not_prebuild_framework_names || []
+        def should_not_prebuild_framework_pod_names
+            names = @should_not_prebuild_framework_pod_names || []
             if parent != nil and parent.kind_of? TargetDefinition
-                names += parent.should_not_prebuild_framework_names
+                names += parent.should_not_prebuild_framework_pod_names
             end
             names
         end
@@ -74,7 +74,7 @@ module Pod
                 targets = aggregate_target.pod_targets || []
 
                 # filter prebuild
-                prebuild_names = target_definition.prebuild_framework_names
+                prebuild_names = target_definition.prebuild_framework_pod_names
                 if not Podfile::DSL.prebuild_all
                     targets = targets.select { |pod_target| prebuild_names.include?(pod_target.pod_name) } 
                 end
@@ -82,7 +82,7 @@ module Pod
                 targets = (targets + dependency_targets).uniq
 
                 # filter should not prebuild
-                explict_should_not_names = target_definition.should_not_prebuild_framework_names
+                explict_should_not_names = target_definition.should_not_prebuild_framework_pod_names
                 targets = targets.reject { |pod_target| explict_should_not_names.include?(pod_target.pod_name) } 
 
                 all += targets
