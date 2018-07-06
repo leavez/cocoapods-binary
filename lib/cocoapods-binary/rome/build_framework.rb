@@ -19,7 +19,7 @@ def build_for_iosish_platform(sandbox,
 
   deployment_target = target.platform.deployment_target.to_s
   
-  target_label = target.label
+  target_label = target.label # name with platform if it's used in multiple platforms
   Pod::UI.puts "Prebuilding #{target_label}..."
   
   other_options = [] 
@@ -30,10 +30,9 @@ def build_for_iosish_platform(sandbox,
   xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'])
 
   # paths
-  root_name = target.pod_name
   module_name = target.product_module_name
-  device_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{root_name}/#{module_name}.framework"
-  simulator_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{root_name}/#{module_name}.framework"
+  device_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{target_label}/#{module_name}.framework"
+  simulator_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{target_label}/#{module_name}.framework"
 
   device_binary = device_framwork_path + "/#{module_name}"
   simulator_binary = simulator_framwork_path + "/#{module_name}"
@@ -41,7 +40,7 @@ def build_for_iosish_platform(sandbox,
   
   # the device_lib path is the final output file path
   # combine the bianries
-  tmp_lipoed_binary_path = "#{build_dir}/#{root_name}"
+  tmp_lipoed_binary_path = "#{build_dir}/#{target_label}"
   lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_binary} #{simulator_binary}`
   puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
   FileUtils.mv tmp_lipoed_binary_path, device_binary, :force => true
