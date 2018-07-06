@@ -15,7 +15,8 @@ def build_for_iosish_platform(sandbox,
                               target, 
                               device, 
                               simulator,
-                              bitcode_enabled)
+                              bitcode_enabled,
+                              simulator_default_arch)
 
   deployment_target = target.platform.deployment_target.to_s
   
@@ -27,7 +28,7 @@ def build_for_iosish_platform(sandbox,
     other_options += ['OTHER_CFLAGS="-fembed-bitcode"']
   end
   xcodebuild(sandbox, target_label, device, deployment_target, other_options)
-  xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'])
+  xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ["ARCHS=#{simulator_default_arch}",'ONLY_ACTIVE_ARCH=NO'])
 
   # paths
   module_name = target.product_module_name
@@ -92,10 +93,10 @@ module Pod
 
       # -- build the framework
       case target.platform.name
-      when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled)
+      when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled, "x86_64")
       when :osx then xcodebuild(sandbox, target.label)
       # when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
-      # when :watchos then build_for_iosish_platform(sandbox, build_dir, target, 'watchos', 'watchsimulator')
+      when :watchos then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'watchos', 'watchsimulator', true, "i386")
       else raise "Unsupported platform for '#{target.name}': '#{target.platform.name}'" end
     
       raise Pod::Informative, 'The build directory was not found in the expected location.' unless build_dir.directory?
