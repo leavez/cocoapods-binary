@@ -31,9 +31,10 @@ def build_for_iosish_platform(sandbox,
   xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ["ARCHS=#{simulator_default_arch}",'ONLY_ACTIVE_ARCH=NO'])
 
   # paths
+  target_name = target.name # equals target.label, like "AFNeworking-iOS" when AFNetworking is used in multiple platforms.
   module_name = target.product_module_name
-  device_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{target_label}/#{module_name}.framework"
-  simulator_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{target_label}/#{module_name}.framework"
+  device_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{target_name}/#{module_name}.framework"
+  simulator_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{target_name}/#{module_name}.framework"
 
   device_binary = device_framwork_path + "/#{module_name}"
   simulator_binary = simulator_framwork_path + "/#{module_name}"
@@ -41,7 +42,7 @@ def build_for_iosish_platform(sandbox,
   
   # the device_lib path is the final output file path
   # combine the bianries
-  tmp_lipoed_binary_path = "#{build_dir}/#{target_label}"
+  tmp_lipoed_binary_path = "#{build_dir}/#{target_name}"
   lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_binary} #{simulator_binary}`
   puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
   FileUtils.mv tmp_lipoed_binary_path, device_binary, :force => true
