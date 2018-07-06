@@ -24,7 +24,7 @@ module Pod
 
                 # make a symlink to target folder
                 prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sanbox)
-                real_file_folder = prebuild_sandbox.framework_folder_path_for_pod_name(self.name)
+                real_file_folder = prebuild_sandbox.framework_folder_path_for_target_name(self.name)
 
                 target_folder = standard_sanbox.pod_dir(self.name)
                 target_folder.rmtree if target_folder.exist?

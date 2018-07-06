@@ -117,8 +117,8 @@ module Pod
             Pod::Prebuild.remove_build_dir(sandbox_path)
             targets.each do |target|
                 next unless target.should_build?
+                output_path = sandbox.framework_folder_path_for_target_name(target.name)
 
-                output_path = sandbox.framework_folder_path_for_pod_name(target.name)
                 output_path.mkpath unless output_path.exist?
                 Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled)
 
@@ -141,7 +141,7 @@ module Pod
             # copy vendored libraries and frameworks
             targets.each do |target|
                 root_path = self.sandbox.pod_dir(target.name)
-                target_folder = sandbox.framework_folder_path_for_pod_name(target.name)
+                target_folder = sandbox.framework_folder_path_for_target_name(target.name)
                 
                 # If target shouldn't build, we copy all the original files
                 # This is for target with only .a and .h files
@@ -172,7 +172,7 @@ module Pod
                 all_needed_names.include? name
             end
             useless_names.each do |name|
-                path = sandbox.framework_folder_path_for_pod_name(name)
+                path = sandbox.framework_folder_path_for_target_name(name)
                 path.rmtree if path.exist?
             end
 
