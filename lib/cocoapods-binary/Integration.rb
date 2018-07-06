@@ -2,6 +2,8 @@ require_relative 'helper/podfile_options'
 require_relative 'helper/feature_switches'
 require_relative 'helper/prebuild_sandbox'
 require_relative 'helper/passer'
+require_relative 'helper/names'
+
 
 
 # NOTE:
@@ -24,13 +26,10 @@ module Pod
 
                 # make a symlink to target folder
                 prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sanbox)
-                real_file_folder = prebuild_sandbox.framework_folder_path_for_target_name(self.name)
-
-                target_folder = standard_sanbox.pod_dir(self.name)
-                target_folder.rmtree if target_folder.exist?
-                target_folder.mkdir
-
-                # make a relatvie symbol link for all children
+                # if spec used in multiple platforms, it may return multiple paths
+                target_names = root_spec.prebuild_target_names_in_prebuild_sandbox(prebuild_sandbox)
+                
+                
                 def walk(path, &action)
                     path.children.each do |child|
                         result = action.call(child, &action)
@@ -50,31 +49,51 @@ module Pod
                     target = target_folder + source.relative_path_from(basefolder)
                     make_link(source, target)
                 end
+                
+                target_names.each do |name|
 
-                # symbol link copy all substructure
-                walk(real_file_folder) do |child|
-                    source = child
-                    # only make symlink to file and `.framework` folder
-                    if child.directory? and child.extname == ".framework"
-                        mirror_with_symlink(source, real_file_folder, target_folder)
-                        next false  # return false means don't go deeper
-                    elsif child.file?
-                        mirror_with_symlink(source, real_file_folder, target_folder)
-                        next true
-                    else
-                        next true
+                    # symbol link copy all substructure
+                    real_file_folder = prebuild_sandbox.framework_folder_path_for_target_name(name)
+                    
+                    # If have only one platform, just place int the root folder of this pod.
+                    # If have multiple paths, we use a sperated folder to store different
+                    # platform frameworks. e.g. AFNetworking/AFNetworking-iOS/AFNetworking.framework
+                    
+                    target_folder = standard_sanbox.pod_dir(self.name)
+                    if target_names.count > 1 
+                        target_folder += real_file_folder.basename
                     end
-                end
+                    target_folder.rmtree if target_folder.exist?
+                    target_folder.mkpath
 
-                # symbol link copy resource for static framework
-                hash = Prebuild::Passer.resources_to_copy_for_static_framework || {}
-                path_objects = hash[self.name]
-                if path_objects != nil
-                    path_objects.each do |object|
-                        make_link(object.real_file_path, object.target_file_path)
+
+                    walk(real_file_folder) do |child|
+                        source = child
+                        # only make symlink to file and `.framework` folder
+                        if child.directory? and child.extname == ".framework"
+                            mirror_with_symlink(source, real_file_folder, target_folder)
+                            next false  # return false means don't go deeper
+                        elsif child.file?
+                            mirror_with_symlink(source, real_file_folder, target_folder)
+                            next true
+                        else
+                            next true
+                        end
                     end
-                end
-            end
+
+
+                    # symbol link copy resource for static framework
+                    hash = Prebuild::Passer.resources_to_copy_for_static_framework || {}
+                    
+                    path_objects = hash[name]
+                    if path_objects != nil
+                        path_objects.each do |object|
+                            make_link(object.real_file_path, object.target_file_path)
+                        end
+                    end
+                end # of for each 
+
+            end # of method
 
         end
     end

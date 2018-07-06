@@ -19,6 +19,8 @@ module Pod
             self.root + "GeneratedFrameworks"
         end
 
+        # @param name [String] pass the target.name (may containing platform suffix)
+        # @return [Pathname] the folder containing the framework file.
         def framework_folder_path_for_target_name(name)
             self.generate_framework_path + name
         end
