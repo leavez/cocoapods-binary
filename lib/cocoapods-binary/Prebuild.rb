@@ -130,8 +130,6 @@ module Pod
                     Prebuild::Passer.resources_to_copy_for_static_framework[target.name] = path_objects
                 end
 
-                # save the pod_name for prebuild framwork in sandbox 
-                sandbox.save_pod_name_for_target target
             end            
             Pod::Prebuild.remove_build_dir(sandbox_path)
 
@@ -161,6 +159,11 @@ module Pod
                         FileUtils.cp_r(lib_path, destination, :remove_destination => true)
                     end
                 end
+            end
+
+            # save the pod_name for prebuild framwork in sandbox 
+            targets.each do |target|
+                sandbox.save_pod_name_for_target target
             end
             
             # Remove useless files

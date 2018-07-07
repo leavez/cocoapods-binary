@@ -42,6 +42,7 @@ module Pod
 
         def save_pod_name_for_target(target)
             folder = framework_folder_path_for_target_name(target.name)
+            return unless folder.exist?
             flag_file_path = folder + "#{target.pod_name}.pod_name"
             File.write(flag_file_path.to_s, "")
         end
