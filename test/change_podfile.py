@@ -143,18 +143,18 @@ def multiplePlatforms():
     return (wrapper(
 """
 pod "Literal", :binary => true
-pod "AFNetworking/Reachability", :binary => true
+pod "AFNetworking/Serialization", :binary => true
 end
 
 target 'BinaryWatch Extension' do
-pod ""Literal""
+pod "AFNetworking/Serialization"
 """) , 
 """
 import Literal
 import AFNetworking
 """,
 """
-import Literal
+import AFNetworking
 """
 ) 
 
