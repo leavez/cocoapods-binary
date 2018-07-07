@@ -50,9 +50,10 @@ module Pod
         private
 
         def pod_name_for_target_folder(target_folder_path)
-            Pathname.new(target_folder_path).children.first do |child|
+            name = Pathname.new(target_folder_path).children.first do |child|
                 child.to_s.end_with? ".pod_name"
-            end.basename(".pod_name").to_s
+            end.basename(".pod_name").to_s 
+            name ||= Pathname.new(target_folder_path).basename.to_s # for compatibility with older version
         end
 
         # Array<[target_name, pod_name]>
