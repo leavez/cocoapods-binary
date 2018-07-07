@@ -42,6 +42,9 @@ pod "Masonry"
 """), 
 """
 import Masonry
+class A {
+    let d = UIView().mas_top
+}
 """)
 
 def addSwiftPod():
@@ -55,6 +58,10 @@ pod "Literal", :binary => true
 """
 import RxCocoa
 import Literal
+class A {
+    let a: CGRect = [1,2,3,4]
+    func dd() { NSObject().rx.observe(CGRect.self, "frame") }
+}
 """)
 
 def revertToSourceCode():
@@ -67,7 +74,13 @@ pod "Literal"
 """), 
 """
 import RxCocoa
+import RxSwift
 import Literal
+class A {
+    let a: CGRect = [1,2,3,4]
+    let b = Observable.just(1)
+    func dd() { NSObject().rx.observe(CGRect.self, "frame") }
+}
 """) 
 
 def addDifferentNamePod():
@@ -83,6 +96,11 @@ pod "lottie-ios", :binary => true
 import Masonry
 import Literal
 import Lottie
+class A {
+    let a: CGRect = [1,2,3,4]
+    let a2 = LOTAnimationView.self
+    let d = UIView().mas_top
+}
 """) 
 
 
@@ -99,6 +117,12 @@ import Masonry
 import Literal
 import Lottie
 import AFNetworking
+class A {
+    let a: CGRect = [1,2,3,4]
+    let a2 = LOTAnimationView.self
+    let b = AFNetworkReachabilityManager()
+    let d = UIView().mas_top
+}
 """) 
 
 def addVendoredLibPod():
@@ -113,6 +137,11 @@ pod "GrowingIO", :binary => true
 import Literal
 import AFNetworking
 import Instabug
+class A {
+    let a: CGRect = [1,2,3,4]
+    let b = AFNetworkReachabilityManager()
+    let c = Instabug.self
+}
 """) 
 
 def deleteAPod():
@@ -124,6 +153,10 @@ pod "AFNetworking/Reachability", :binary => true
 """
 import Literal
 import AFNetworking
+class A {
+    let a: CGRect = [1,2,3,4]
+    let b = AFNetworkReachabilityManager()
+}
 """) 
 
 def universalFlag():
@@ -137,6 +170,10 @@ pod "AFNetworking/Reachability"
 """
 import Literal
 import AFNetworking
+class A {
+    let a: CGRect = [1,2,3,4]
+    let b = AFNetworkReachabilityManager()
+}
 """) 
     
 def multiplePlatforms():
