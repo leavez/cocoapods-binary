@@ -47,4 +47,14 @@ pod install
 build
 
 #
+python change_podfile.py "multiplePlatforms"
+pod install
+build
+
+#
+python change_podfile.py "multiplePlatformsWithALLFlag"
+pod install
+build
+
+#
 exit 0

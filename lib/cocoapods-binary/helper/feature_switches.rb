@@ -38,11 +38,6 @@ module Pod
                 end
                 
                 if should_prebuild and (not local)
-                    if current_target_definition.platform == :watchos
-                        # watchos isn't supported currently
-                        Pod::UI.warn "Binary doesn't support watchos currently: #{name}. You can manually set `binary => false` for this pod to suppress this warning."
-                        return
-                    end
                     old_method.bind(self).(name, *args)
                 end
             end

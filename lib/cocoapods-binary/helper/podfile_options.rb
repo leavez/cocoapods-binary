@@ -11,40 +11,41 @@ module Pod
 
         ## --- option for setting using prebuild framework ---
         def parse_prebuild_framework(name, requirements)
+
+            should_prebuild = Pod::Podfile::DSL.prebuild_all
+
             options = requirements.last
-            return requirements unless options.is_a?(Hash)
+            if options.is_a?(Hash) && options[Pod::Prebuild.keyword] != nil 
+                should_prebuild = options.delete(Pod::Prebuild.keyword)
+                requirements.pop if options.empty?
+            end
     
-            should_prebuild_framework = options.delete(Pod::Prebuild.keyword)
             pod_name = Specification.root_name(name)
-            set_prebuild_for_pod(pod_name, should_prebuild_framework)
-            requirements.pop if options.empty?
+            set_prebuild_for_pod(pod_name, should_prebuild)
         end
         
         def set_prebuild_for_pod(pod_name, should_prebuild)
             
             if should_prebuild == true
-                # watchos isn't supported currently
-                return if self.platform == :watchos
-
-                @prebuild_framework_names ||= []
-                @prebuild_framework_names.push pod_name
+                @prebuild_framework_pod_names ||= []
+                @prebuild_framework_pod_names.push pod_name
             else
-                @should_not_prebuild_framework_names ||= []
-                @should_not_prebuild_framework_names.push pod_name
+                @should_not_prebuild_framework_pod_names ||= []
+                @should_not_prebuild_framework_pod_names.push pod_name
             end
         end
 
-        def prebuild_framework_names
-            names = @prebuild_framework_names || []
+        def prebuild_framework_pod_names
+            names = @prebuild_framework_pod_names || []
             if parent != nil and parent.kind_of? TargetDefinition
-                names += parent.prebuild_framework_names
+                names += parent.prebuild_framework_pod_names
             end
             names
         end
-        def should_not_prebuild_framework_names
-            names = @should_not_prebuild_framework_names || []
+        def should_not_prebuild_framework_pod_names
+            names = @should_not_prebuild_framework_pod_names || []
             if parent != nil and parent.kind_of? TargetDefinition
-                names += parent.should_not_prebuild_framework_names
+                names += parent.should_not_prebuild_framework_pod_names
             end
             names
         end
@@ -71,13 +72,13 @@ module Pod
 
             all = []
 
-            aggregate_targets = self.aggregate_targets.select { |a| a.platform != :watchos }
+            aggregate_targets = self.aggregate_targets
             aggregate_targets.each do |aggregate_target|
                 target_definition = aggregate_target.target_definition
                 targets = aggregate_target.pod_targets || []
 
                 # filter prebuild
-                prebuild_names = target_definition.prebuild_framework_names
+                prebuild_names = target_definition.prebuild_framework_pod_names
                 if not Podfile::DSL.prebuild_all
                     targets = targets.select { |pod_target| prebuild_names.include?(pod_target.pod_name) } 
                 end
@@ -85,7 +86,7 @@ module Pod
                 targets = (targets + dependency_targets).uniq
 
                 # filter should not prebuild
-                explict_should_not_names = target_definition.should_not_prebuild_framework_names
+                explict_should_not_names = target_definition.should_not_prebuild_framework_pod_names
                 targets = targets.reject { |pod_target| explict_should_not_names.include?(pod_target.pod_name) } 
 
                 all += targets
@@ -98,6 +99,25 @@ module Pod
         # the root names who needs prebuild, including dependency pods.
         def prebuild_pod_names 
            @prebuild_pod_names ||= self.prebuild_pod_targets.map(&:pod_name)
+        end
+
+
+        def validate_every_pod_only_have_one_form
+            prebuit = []
+            not_prebuilt = []
+            aggregate_targets = self.aggregate_targets
+            aggregate_targets.each do |aggregate_target|
+                target_definition = aggregate_target.target_definition
+                prebuit += target_definition.prebuild_framework_pod_names
+                not_prebuilt += aggregate_target.pod_targets.reject do |target|
+                     target_definition.prebuild_framework_pod_names.include? target.pod_name 
+                end.map(&:pod_name)
+            end
+
+            intersection = prebuit & not_prebuilt
+            if not intersection.empty?
+                raise Informative, "One pod can only be prebuilt or not prebuilt. These pod have different forms in multiple targets: #{intersection.to_a}. Please fix that."
+            end
         end
 
     end

@@ -15,11 +15,12 @@ def build_for_iosish_platform(sandbox,
                               target, 
                               device, 
                               simulator,
-                              bitcode_enabled)
+                              bitcode_enabled,
+                              simulator_default_arch)
 
   deployment_target = target.platform.deployment_target.to_s
   
-  target_label = target.label
+  target_label = target.label # name with platform if it's used in multiple platforms
   Pod::UI.puts "Prebuilding #{target_label}..."
   
   other_options = [] 
@@ -27,13 +28,13 @@ def build_for_iosish_platform(sandbox,
     other_options += ['OTHER_CFLAGS="-fembed-bitcode"']
   end
   xcodebuild(sandbox, target_label, device, deployment_target, other_options)
-  xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'])
+  xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ["ARCHS=#{simulator_default_arch}",'ONLY_ACTIVE_ARCH=NO'])
 
   # paths
-  root_name = target.pod_name
+  target_name = target.name # equals target.label, like "AFNeworking-iOS" when AFNetworking is used in multiple platforms.
   module_name = target.product_module_name
-  device_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{root_name}/#{module_name}.framework"
-  simulator_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{root_name}/#{module_name}.framework"
+  device_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{target_name}/#{module_name}.framework"
+  simulator_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{target_name}/#{module_name}.framework"
 
   device_binary = device_framwork_path + "/#{module_name}"
   simulator_binary = simulator_framwork_path + "/#{module_name}"
@@ -41,7 +42,7 @@ def build_for_iosish_platform(sandbox,
   
   # the device_lib path is the final output file path
   # combine the bianries
-  tmp_lipoed_binary_path = "#{build_dir}/#{root_name}"
+  tmp_lipoed_binary_path = "#{build_dir}/#{target_name}"
   lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_binary} #{simulator_binary}`
   puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
   FileUtils.mv tmp_lipoed_binary_path, device_binary, :force => true
@@ -93,10 +94,10 @@ module Pod
 
       # -- build the framework
       case target.platform.name
-      when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled)
+      when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled, "x86_64")
       when :osx then xcodebuild(sandbox, target.label)
       # when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
-      # when :watchos then build_for_iosish_platform(sandbox, build_dir, target, 'watchos', 'watchsimulator')
+      when :watchos then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'watchos', 'watchsimulator', true, "i386")
       else raise "Unsupported platform for '#{target.name}': '#{target.platform.name}'" end
     
       raise Pod::Informative, 'The build directory was not found in the expected location.' unless build_dir.directory?
