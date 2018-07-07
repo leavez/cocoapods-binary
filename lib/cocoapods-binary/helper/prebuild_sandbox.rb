@@ -28,16 +28,23 @@ module Pod
         end
 
             
-        def exsited_framework_pod_names
+    
+        def exsited_framework_target_names
             return [] unless generate_framework_path.exist?
             generate_framework_path.children().map do |framework_path|
                 if framework_path.directory? && (not framework_path.children.empty?)
-                    target_name = framework_path.basename
-                    Pod.pod_name_from_target_name(target_name.to_s)
+                    framework_path.basename.to_s
                 else
                     nil
                 end
             end.reject(&:nil?).uniq
+        end
+
+        def exsited_framework_pod_names
+            target_names = exsited_framework_target_names
+            target_names.map do |target_name|
+                Pod.pod_name_from_target_name(target_name.to_s)
+            end.uniq
         end
 
     end

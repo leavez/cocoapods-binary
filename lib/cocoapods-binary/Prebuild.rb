@@ -56,7 +56,7 @@ module Pod
         # The install method when have completed cache
         def install_when_cache_hit!
             # just print log
-            self.sandbox.exsited_framework_pod_names.each do |name|
+            self.sandbox.exsited_framework_target_names.each do |name|
                 UI.puts "Using #{name}"
             end
         end
@@ -91,16 +91,19 @@ module Pod
                 root_names_to_update = (added + changed + missing)
 
                 # transform names to targets
-                name_to_target_hash = self.pod_targets.reduce({}) do |sum, target|
-                    sum[target.name] = target
-                    sum
+                def targets_for_pod_names(root_pod_names)
+                    name_to_target_hash = self.pod_targets.reduce({}) do |sum, target|
+                        sum[target.name] = target
+                        sum
+                    end
+                    root_pod_names.map do |pod_name|
+                        possible_target_names = Pod.possible_target_names_from_pod_name(pod_name)
+                        possible_target_names.map do |n|
+                            name_to_target_hash[n]
+                        end.compact
+                    end.flatten || []
                 end
-                targets = root_names_to_update.map do |pod_name|
-                    possible_target_names = Pod.possible_target_names_from_pod_name(pod_name)
-                    possible_target_names.map do |n|
-                        name_to_target_hash[n]
-                    end.compact
-                end.flatten || []
+                targets = targets_for_pod_names(root_names_to_update)
 
                 # add the dendencies
                 dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
@@ -169,10 +172,10 @@ module Pod
             # Remove useless files
             # remove useless pods
             all_needed_names = self.pod_targets.map(&:name).uniq
-            useless_names = sandbox.exsited_framework_pod_names.reject do |name| 
+            useless_target_names = sandbox.exsited_framework_target_names.reject do |name| 
                 all_needed_names.include? name
             end
-            useless_names.each do |name|
+            useless_target_names.each do |name|
                 path = sandbox.framework_folder_path_for_target_name(name)
                 path.rmtree if path.exist?
             end
