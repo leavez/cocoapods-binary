@@ -171,7 +171,6 @@ module Pod
                     spec.attributes_hash[platform] = {}
                 end
                 vendored_frameworks = spec.attributes_hash[platform]["vendored_frameworks"] || []
-                puts "vendored_frameworks --- #{vendored_frameworks}"
                 vendored_frameworks = [vendored_frameworks] if vendored_frameworks.kind_of?(String)
                 vendored_frameworks += [added_framework_file_path]
                 spec.attributes_hash[platform]["vendored_frameworks"] = vendored_frameworks
@@ -192,15 +191,19 @@ module Pod
 
             prebuilt_specs.each do |spec|
 
-                # use the prebuild framworks as vendered frameworks
+                # Use the prebuild framworks as vendered frameworks
                 targets = get_corresponding_targets(spec, pod_name_to_targets_hash)
-                puts "************ targets: #{targets}"
                 targets.each do |target|
+                    # the framework_file_path rule is decided when `install_for_prebuild`,
+                    # as to compitable with older version and be less wordy.
                     framework_file_path = target.framework_name
                     framework_file_path = target.name + "/" + framework_file_path if targets.count > 1
-                    puts "target ---- #{target.name}}"
                     add_vendered_framework(spec, target.platform.name.to_s, framework_file_path)
                 end
+                # Clean the source files
+                # we just add the prebuilt framework to specific platform and set no source files 
+                # for all platform, so it doesn't support the sence that 'a pod perbuild for one
+                # platform and not for another platform.'
                 empty_source_files(spec)
 
                 # to avoid the warning of missing license
