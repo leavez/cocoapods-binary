@@ -11,13 +11,17 @@ module Pod
 
         ## --- option for setting using prebuild framework ---
         def parse_prebuild_framework(name, requirements)
+
+            should_prebuild = Pod::Podfile::DSL.prebuild_all
+
             options = requirements.last
-            return requirements unless options.is_a?(Hash)
+            if options.is_a?(Hash) && options[Pod::Prebuild.keyword] != nil 
+                should_prebuild = options.delete(Pod::Prebuild.keyword)
+                requirements.pop if options.empty?
+            end
     
-            should_prebuild_framework = options.delete(Pod::Prebuild.keyword)
             pod_name = Specification.root_name(name)
-            set_prebuild_for_pod(pod_name, should_prebuild_framework)
-            requirements.pop if options.empty?
+            set_prebuild_for_pod(pod_name, should_prebuild)
         end
         
         def set_prebuild_for_pod(pod_name, should_prebuild)
@@ -105,7 +109,9 @@ module Pod
             aggregate_targets.each do |aggregate_target|
                 target_definition = aggregate_target.target_definition
                 prebuit += target_definition.prebuild_framework_pod_names
-                not_prebuilt += target_definition.should_not_prebuild_framework_pod_names
+                not_prebuilt += aggregate_target.pod_targets.reject do |target|
+                     target_definition.prebuild_framework_pod_names.include? target.pod_name 
+                end.map(&:pod_name)
             end
 
             intersection = prebuit & not_prebuilt
