@@ -12,45 +12,11 @@
 # platform simultaneously. So one `root_spec.name` may have multiple coresponding `target.name`s.
 # Therefore, map a spec to/from targets is a little complecated. It's one to many.
 #
-module Pod
 
-    def self.possible_target_names_from_pod_name(root_pod_name) 
-        suffixes = ["", "-iOS", "-watchOS", "-macOS"]
-        paths = suffixes.map do |s|
-            root_pod_name + s
-        end
-    end
 
-    def self.pod_name_from_target_name(target_name)
-        suffixes = ["-iOS", "-watchOS", "-macOS"]
-        for s in suffixes
-            if target_name.end_with? s
-                return target_name.chomp s
-            end
-        end
-        return target_name
-    end
 
-    class Specification
 
-        # Target name is different to spec name. One spec may map to multiple targets due to 
-        # included by multiple platforms. This method return the possible names for targets.
-        # These name may not be existed actually, It's just a theorical combination.
-        def possible_target_names
-            Pod.possible_target_names_from_pod_name self.name
-        end
 
-        # return the real targets names generated in prebuild sandbox
-        def prebuild_target_names_in_prebuild_sandbox(prebuild_sandbox)
-            names = self.possible_target_names
-            names.select do |name|
-                path = prebuild_sandbox.framework_folder_path_for_target_name(name)
-                path.exist?
-            end
-        end
-    end
-
-end
 
 # Target:
    

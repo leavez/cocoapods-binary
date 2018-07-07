@@ -27,8 +27,7 @@ module Pod
                 # make a symlink to target folder
                 prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sanbox)
                 # if spec used in multiple platforms, it may return multiple paths
-                target_names = root_spec.prebuild_target_names_in_prebuild_sandbox(prebuild_sandbox)
-                
+                target_names = prebuild_sandbox.existed_target_names_for_pod_name(self.name)
                 
                 def walk(path, &action)
                     path.children.each do |child|

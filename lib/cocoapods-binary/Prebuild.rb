@@ -92,16 +92,9 @@ module Pod
 
                 # transform names to targets
                 def targets_for_pod_names(root_pod_names)
-                    name_to_target_hash = self.pod_targets.reduce({}) do |sum, target|
-                        sum[target.name] = target
-                        sum
+                    self.pod_targets.select do |target|
+                        target.pod_name == root_pod_names
                     end
-                    root_pod_names.map do |pod_name|
-                        possible_target_names = Pod.possible_target_names_from_pod_name(pod_name)
-                        possible_target_names.map do |n|
-                            name_to_target_hash[n]
-                        end.compact
-                    end.flatten || []
                 end
                 targets = targets_for_pod_names(root_names_to_update)
 
@@ -138,6 +131,9 @@ module Pod
                     end
                     Prebuild::Passer.resources_to_copy_for_static_framework[target.name] = path_objects
                 end
+
+                # save the pod_name for prebuild framwork in sandbox 
+                sandbox.save_pod_name_for_target target
             end            
             Pod::Prebuild.remove_build_dir(sandbox_path)
 
