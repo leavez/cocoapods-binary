@@ -33,7 +33,7 @@ module Pod
             generate_framework_path.children().map do |framework_path|
                 if framework_path.directory? && (not framework_path.children.empty?)
                     target_name = framework_path.basename
-                    Pod.pod_name_from_target_name(target_name)
+                    Pod.pod_name_from_target_name(target_name.to_s)
                 else
                     nil
                 end
