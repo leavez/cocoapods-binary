@@ -145,45 +145,63 @@ module Pod
 
             # call original
             old_method2.bind(self).()
+            # ...
+            # ...
+            # ...
+            # after finishing the very complex orginal function
 
-
-            # check the prebuilt targets 
-            targets = self.prebuild_pod_targets
-            targets_have_different_platforms = targets.select {|t| t.pod_name != t.name }
-
-            if targets_have_different_platforms.count > 0
-                names = targets_have_different_platforms.map(&:pod_name)
-                STDERR.puts "[!] Binary doesn't support pods who integrate in 2 or more platforms simultaneously: #{names}".red
-                exit
+            
+            # prepare
+            # make sturcture to fast get target by name
+            pod_name_to_targets_hash = self.pod_targets.reduce({}) do |sum, target|
+                array = sum[target.pod_name] || []
+                array << target
+                sum[target.pod_name] = array
+                sum
             end
-
+            def get_corresponding_targets(spec, pod_name_to_targets_hash)
+                corresponding_targets = pod_name_to_targets_hash[spec.root.name] || []
+                corresponding_targets = corresponding_targets.reject do |target|
+                    Prebuild::Passer.target_names_to_skip_integration_framework.include? target.name
+                end
+                corresponding_targets
+            end
+            def add_vendered_framework(spec, platform, added_framework_file_path)
+                if spec.attributes_hash[platform] == nil
+                    spec.attributes_hash[platform] = {}
+                end
+                vendored_frameworks = spec.attributes_hash[platform]["vendored_frameworks"] || []
+                puts "vendored_frameworks --- #{vendored_frameworks}"
+                vendored_frameworks = [vendored_frameworks] if vendored_frameworks.kind_of?(String)
+                vendored_frameworks += [added_framework_file_path]
+                spec.attributes_hash[platform]["vendored_frameworks"] = vendored_frameworks
+            end
+            def empty_source_files(spec)
+                spec.attributes_hash["source_files"] = []
+                ["ios", "watchos", "tvos", "osx"].each do |plat|
+                    if spec.attributes_hash[plat] != nil
+                        spec.attributes_hash[plat]["source_files"] = []
+                    end
+                end
+            end
 
             specs = self.analysis_result.specifications
             prebuilt_specs = (specs.select do |spec|
                 self.prebuild_pod_names.include? spec.root.name
             end)
-            
-            # make sturcture to fast get target by name
-            name_to_target_hash = self.pod_targets.reduce({}) do |sum, target|
-                sum[target.name] = target
-                sum
-            end
 
             prebuilt_specs.each do |spec|
-                # `spec` may be a subspec, so we use the root's name 
-                root_name = spec.root.name
-                
-                target = name_to_target_hash[root_name]
-                next if Prebuild::Passer.target_names_to_skip_integration_framework.include? target.pod_name
 
-                # use the prebuilt framework
-                original_vendored_frameworks = spec.attributes_hash["vendored_frameworks"] || []
-                if original_vendored_frameworks.kind_of?(String)
-                    original_vendored_frameworks = [original_vendored_frameworks]
+                # use the prebuild framworks as vendered frameworks
+                targets = get_corresponding_targets(spec, pod_name_to_targets_hash)
+                puts "************ targets: #{targets}"
+                targets.each do |target|
+                    framework_file_path = target.framework_name
+                    framework_file_path = target.name + "/" + framework_file_path if targets.count > 1
+                    puts "target ---- #{target.name}}"
+                    add_vendered_framework(spec, target.platform.name.to_s, framework_file_path)
                 end
-                original_vendored_frameworks += [target.framework_name]
-                spec.attributes_hash["vendored_frameworks"] = original_vendored_frameworks
-                spec.attributes_hash["source_files"] = []
+                empty_source_files(spec)
 
                 # to avoid the warning of missing license
                 spec.attributes_hash["license"] = {} 
