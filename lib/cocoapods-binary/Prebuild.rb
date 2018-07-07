@@ -91,12 +91,10 @@ module Pod
                 root_names_to_update = (added + changed + missing)
 
                 # transform names to targets
-                def targets_for_pod_names(root_pod_names)
-                    self.pod_targets.select do |target|
-                        target.pod_name == root_pod_names
-                    end
-                end
-                targets = targets_for_pod_names(root_names_to_update)
+                cache = []
+                targets = root_names_to_update.map do |pod_name|
+                    Pod.fast_get_targets_for_pod_name(pod_name, self.pod_targets, cache)
+                end.flatten
 
                 # add the dendencies
                 dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []

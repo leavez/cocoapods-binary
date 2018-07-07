@@ -152,20 +152,8 @@ module Pod
 
             
             # prepare
-            # make sturcture to fast get target by name
-            pod_name_to_targets_hash = self.pod_targets.reduce({}) do |sum, target|
-                array = sum[target.pod_name] || []
-                array << target
-                sum[target.pod_name] = array
-                sum
-            end
-            def get_corresponding_targets(spec, pod_name_to_targets_hash)
-                corresponding_targets = pod_name_to_targets_hash[spec.root.name] || []
-                corresponding_targets = corresponding_targets.reject do |target|
-                    Prebuild::Passer.target_names_to_skip_integration_framework.include? target.name
-                end
-                corresponding_targets
-            end
+            cache = []
+
             def add_vendered_framework(spec, platform, added_framework_file_path)
                 if spec.attributes_hash[platform] == nil
                     spec.attributes_hash[platform] = {}
@@ -192,7 +180,8 @@ module Pod
             prebuilt_specs.each do |spec|
 
                 # Use the prebuild framworks as vendered frameworks
-                targets = get_corresponding_targets(spec, pod_name_to_targets_hash)
+                # get_corresponding_targets
+                targets = Pod.fast_get_targets_for_pod_name(spec.root.name, self.pod_targets, cache)
                 targets.each do |target|
                     # the framework_file_path rule is decided when `install_for_prebuild`,
                     # as to compitable with older version and be less wordy.

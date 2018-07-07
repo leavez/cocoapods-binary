@@ -1,3 +1,4 @@
+# ABOUT NAMES
 #
 # There are many kinds of name in cocoapods. Two main names are widely used in this plugin.
 # - root_spec.name (spec.root_name, targe.pod_name):
@@ -12,6 +13,26 @@
 # platform simultaneously. So one `root_spec.name` may have multiple coresponding `target.name`s.
 # Therefore, map a spec to/from targets is a little complecated. It's one to many.
 #
+
+# Tool to transform Pod_name to target efficiently
+module Pod
+    def self.fast_get_targets_for_pod_name(pod_name, targets, cache)
+        pod_name_to_targets_hash = nil
+        if cache.empty?
+            pod_name_to_targets_hash = targets.reduce({}) do |sum, target|
+                array = sum[target.pod_name] || []
+                array << target
+                sum[target.pod_name] = array
+                sum
+            end
+            cache << pod_name_to_targets_hash
+        else
+            pod_name_to_targets_hash = cache.first
+        end
+        
+        pod_name_to_targets_hash[pod_name] || []
+    end
+end
 
 
 
