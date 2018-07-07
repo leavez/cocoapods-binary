@@ -25,6 +25,12 @@ def save_to_podfile(text):
     file.write(text[1])
     file.close()
 
+    path = os.path.dirname(os.path.abspath(__file__))
+    path += "/BinaryWatch Extension/import.swift"
+    file = open(path, "w+")
+    file.write( "" if len(text) <= 2 else text[2])
+    file.close()
+
 
 
 def initial():
@@ -133,6 +139,24 @@ import Literal
 import AFNetworking
 """) 
     
+def multiplePlatforms():
+    return (wrapper(
+"""
+pod "Literal", :binary => true
+pod "AFNetworking/Reachability", :binary => true
+end
+
+target 'BinaryWatch Extension' do
+pod ""Literal""
+""") , 
+"""
+import Literal
+import AFNetworking
+""",
+"""
+import Literal
+"""
+) 
 
 
 
