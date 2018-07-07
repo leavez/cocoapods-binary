@@ -147,17 +147,53 @@ pod "AFNetworking/Serialization", :binary => true
 end
 
 target 'BinaryWatch Extension' do
-pod "AFNetworking/Serialization"
+    platform :watchos
+    pod "AFNetworking/Serialization", :binary => true
 """) , 
 """
 import Literal
 import AFNetworking
+class A {
+    let a: CGRect = [1,2,3,4]
+    func dd() {  _ = AFURLRequestSerializationErrorDomain   }
+}
 """,
 """
 import AFNetworking
+class A {
+    func dd() { _ = AFURLRequestSerializationErrorDomain }
+}
 """
 ) 
 
+def multiplePlatformsWithALLFlag():
+    return (wrapper(
+"""
+all_binary!
+
+pod "Literal"
+pod "AFNetworking/Serialization"
+end
+
+target 'BinaryWatch Extension' do
+    platform :watchos
+    pod "AFNetworking/Serialization"
+""") , 
+"""
+import Literal
+import AFNetworking
+class A {
+    let a: CGRect = [1,2,3,4]
+    func dd() {  _ = AFURLRequestSerializationErrorDomain   }
+}
+""",
+"""
+import AFNetworking
+class A {
+    func dd() { _ = AFURLRequestSerializationErrorDomain }
+}
+"""
+) 
 
 
 if __name__ == "__main__":

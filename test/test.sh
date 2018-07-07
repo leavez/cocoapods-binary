@@ -42,12 +42,17 @@ pod install
 build
 
 #
+python change_podfile.py "universalFlag"
+pod install
+build
+
+#
 python change_podfile.py "multiplePlatforms"
 pod install
 build
 
 #
-python change_podfile.py "universalFlag"
+python change_podfile.py "multiplePlatformsWithALLFlag"
 pod install
 build
 
