@@ -114,7 +114,7 @@ module Pod
             changes = Pod::Prebuild::Passer.prebuild_pods_changes
             updated_names = []
             if changes == nil
-                updated_names = PrebuildSandbox.from_standard_sandbox(self.sandbox).exsited_framework_names
+                updated_names = PrebuildSandbox.from_standard_sandbox(self.sandbox).exsited_framework_pod_names
             else
                 added = changes.added
                 changed = changes.changed 

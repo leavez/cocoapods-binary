@@ -1,9 +1,11 @@
 #
 # There are many kinds of name in cocoapods. Two main names are widely used in this plugin.
 # - root_spec.name (spec.root_name, targe.pod_name):
+#   aka "pod_name"
 #   the name we use in podfile. the concept.
 # 
 # - target.name:
+#   aka "target_name"
 #   the name of the final target in xcode project. the final real thing.
 #
 # One pod may have multiple targets in xcode project, due to one pod can be used in mutiple 
@@ -17,6 +19,16 @@ module Pod
         paths = suffixes.map do |s|
             root_pod_name + s
         end
+    end
+
+    def self.pod_name_from_target_name(target_name)
+        suffixes = ["-iOS", "-watchOS", "-macOS"]
+        for s in suffixes
+            if target_name.end_with? s
+                return target_name.chomp s
+            end
+        end
+        return target_name
     end
 
     class Specification

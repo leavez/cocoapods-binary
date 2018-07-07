@@ -1,3 +1,5 @@
+require_relative "names"
+
 module Pod
     class PrebuildSandbox < Sandbox
 
@@ -25,26 +27,17 @@ module Pod
             self.generate_framework_path + name
         end
 
-        def exsited_framework_names
+            
+        def exsited_framework_pod_names
             return [] unless generate_framework_path.exist?
-            generate_framework_path.children().map do |framework_name|
-                if framework_name.directory?
-                    if not framework_name.children.empty?
-                        File.basename(framework_name)
-                    else
-                        nil
-                    end
+            generate_framework_path.children().map do |framework_path|
+                if framework_path.directory? && (not framework_path.children.empty?)
+                    target_name = framework_path.basename
+                    Pod.pod_name_from_target_name(target_name)
                 else
                     nil
                 end
-            end.reject(&:nil?)
-        end
-
-        def framework_existed?(root_name)
-            return false unless generate_framework_path.exist?
-            generate_framework_path.children().any? do |child|
-                child.basename.to_s == root_name
-            end
+            end.reject(&:nil?).uniq
         end
 
     end

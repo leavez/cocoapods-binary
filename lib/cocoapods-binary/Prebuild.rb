@@ -43,9 +43,9 @@ module Pod
             unchanged = changes.unchanged
             deleted = changes.deleted 
             
-            exsited_framework_names = sandbox.exsited_framework_names
+            exsited_framework_pod_names = sandbox.exsited_framework_pod_names
             missing = unchanged.select do |pod_name|
-                not exsited_framework_names.include?(pod_name)
+                not exsited_framework_pod_names.include?(pod_name)
             end
 
             needed = (added + changed + deleted + missing)
@@ -56,7 +56,7 @@ module Pod
         # The install method when have completed cache
         def install_when_cache_hit!
             # just print log
-            self.sandbox.exsited_framework_names.each do |name|
+            self.sandbox.exsited_framework_pod_names.each do |name|
                 UI.puts "Using #{name}"
             end
         end
@@ -80,11 +80,11 @@ module Pod
                 deleted = changes.deleted 
     
                 existed_framework_folder.mkdir unless existed_framework_folder.exist?
-                exsited_framework_names = sandbox.exsited_framework_names
+                exsited_framework_pod_names = sandbox.exsited_framework_pod_names
     
                 # additions
                 missing = unchanged.select do |pod_name|
-                    not exsited_framework_names.include?(pod_name)
+                    not exsited_framework_pod_names.include?(pod_name)
                 end
 
 
@@ -169,7 +169,7 @@ module Pod
             # Remove useless files
             # remove useless pods
             all_needed_names = self.pod_targets.map(&:name).uniq
-            useless_names = sandbox.exsited_framework_names.reject do |name| 
+            useless_names = sandbox.exsited_framework_pod_names.reject do |name| 
                 all_needed_names.include? name
             end
             useless_names.each do |name|
