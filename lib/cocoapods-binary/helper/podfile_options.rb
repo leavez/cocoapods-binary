@@ -97,6 +97,23 @@ module Pod
            @prebuild_pod_names ||= self.prebuild_pod_targets.map(&:pod_name)
         end
 
+
+        def validate_every_pod_only_have_one_form
+            prebuit = []
+            not_prebuilt = []
+            aggregate_targets = self.aggregate_targets
+            aggregate_targets.each do |aggregate_target|
+                target_definition = aggregate_target.target_definition
+                prebuit += target_definition.prebuild_framework_pod_names
+                not_prebuilt += target_definition.should_not_prebuild_framework_pod_names
+            end
+
+            intersection = prebuit & not_prebuilt
+            if not intersection.empty?
+                raise Informative, "One pod can only be prebuilt or not prebuilt. These pod have different forms in multiple targets: #{intersection.to_a}. Please fix that."
+            end
+        end
+
     end
 end
 

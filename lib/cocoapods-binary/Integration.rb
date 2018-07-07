@@ -150,6 +150,10 @@ module Pod
             # ...
             # after finishing the very complex orginal function
 
+
+            # check
+            self.validate_every_pod_only_have_one_form
+
             
             # prepare
             cache = []
