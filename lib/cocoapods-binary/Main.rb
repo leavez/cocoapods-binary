@@ -97,6 +97,7 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
     Pod::Podfile::DSL.enable_prebuild_patch false
     Pod::Config.force_disable_write_lockfile false
     Pod::Installer.disable_install_complete_message false
+    Pod::UserInterface.warnings = [] # clean the warning in the prebuild step, it's duplicated.
     
     
     # -- step 2: pod install ---
