@@ -112,7 +112,8 @@ module Pod
             end
 
             multi_targets_pods = multi_targets_pods.reject do |name, targets|
-                targets.all? {|t| self.prebuild_pod_targets.include? t}
+                contained = targets.map{|t| self.prebuild_pod_targets.include? t }
+                contained.uniq.count == 1 # all equal
             end
 
             return if multi_targets_pods.empty?
