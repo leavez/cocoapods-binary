@@ -53,7 +53,8 @@ module Pod
         def pod_name_for_target_folder(target_folder_path)
             name = Pathname.new(target_folder_path).children.find do |child|
                 child.to_s.end_with? ".pod_name"
-            end.basename(".pod_name").to_s 
+            end
+            name = name.basename(".pod_name").to_s unless name.nil?
             name ||= Pathname.new(target_folder_path).basename.to_s # for compatibility with older version
         end
 
