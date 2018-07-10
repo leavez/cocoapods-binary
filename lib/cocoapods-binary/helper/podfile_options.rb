@@ -69,7 +69,7 @@ module Pod
     class Installer
 
         def prebuild_pod_targets
-
+            @prebuild_pod_targets ||= (
             all = []
 
             aggregate_targets = self.aggregate_targets
@@ -94,6 +94,7 @@ module Pod
 
             all = all.reject {|pod_target| sandbox.local?(pod_target.pod_name) }
             all.uniq
+            )
         end
 
         # the root names who needs prebuild, including dependency pods.
@@ -103,21 +104,22 @@ module Pod
 
 
         def validate_every_pod_only_have_one_form
-            prebuit = []
-            not_prebuilt = []
-            aggregate_targets = self.aggregate_targets
-            aggregate_targets.each do |aggregate_target|
-                target_definition = aggregate_target.target_definition
-                prebuit += target_definition.prebuild_framework_pod_names
-                not_prebuilt += aggregate_target.pod_targets.reject do |target|
-                     target_definition.prebuild_framework_pod_names.include? target.pod_name 
-                end.map(&:pod_name)
+
+            multi_targets_pods = self.pod_targets.group_by do |t|
+                t.pod_name
+            end.select do |k, v|
+                v.map{|t| t.platform.name }.count > 1
             end
 
-            intersection = prebuit & not_prebuilt
-            if not intersection.empty?
-                raise Informative, "One pod can only be prebuilt or not prebuilt. These pod have different forms in multiple targets: #{intersection.to_a}. Please fix that."
+            multi_targets_pods = multi_targets_pods.reject do |name, targets|
+                targets.all? {|t| self.prebuild_pod_targets.include? t}
             end
+
+            return if multi_targets_pods.empty?
+
+            warnings = "One pod can only be prebuilt or not prebuilt. These pod have different forms in multiple targets:\n"
+            warnings += multi_targets_pods.map{|name, targets| "         #{name}: #{targets.map{|t|t.platform.name}}"}.join("\n")
+            raise Informative, warnings
         end
 
     end
