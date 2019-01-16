@@ -5,6 +5,9 @@
 
 A CocoaPods plugin to integrate pods in form of prebuilt frameworks, not source code, by adding **just one flag** in podfile. Speed up compiling dramatically.
 
+Good news: Introduction on cocoapods offical site: [Pre-compiling dependencies](http://guides.cocoapods.org/plugins/pre-compiling-dependencies.html) ( NOTE: This plugin is a community work, not official.)
+
+
 ## Why
 
 You may wonder why CocoaPods doesn't have a function to integrate libs in form of binaries, if there are dozens or hundreds of pods in your podfile and compile them for a great many times meaninglessly. Too many source code of libs slow down your compile and the response of IDE (e.g. code completion), and then reduce work efficiency, leaving us time to think about the meaning of life.
