@@ -80,7 +80,8 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
     prebuild_podfile = Pod::Podfile.from_ruby(podfile.defined_in_file)
     
     # install
-    binary_installer = Pod::Installer.new(prebuild_sandbox, prebuild_podfile , nil)
+    lockfile = installer_context.lockfile
+    binary_installer = Pod::Installer.new(prebuild_sandbox, prebuild_podfile, lockfile)
     
     if binary_installer.have_exact_prebuild_cache?
         binary_installer.install_when_cache_hit!
