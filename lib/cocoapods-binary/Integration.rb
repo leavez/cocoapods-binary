@@ -199,6 +199,19 @@ module Pod
                 # platform and not for another platform.'
                 empty_source_files(spec)
 
+                # to remove the resurce bundle target. 
+                # When specify the "resource_bundles" in podspec, xcode will generate a bundle 
+                # target after pod install. But the bundle have already built when the prebuit
+                # phase and saved in the framework folder. We will treat it as a normal resource
+                # file.
+                # https://github.com/leavez/cocoapods-binary/issues/29
+                if spec.attributes_hash["resource_bundles"]
+                    bundle_names = spec.attributes_hash["resource_bundles"].keys
+                    spec.attributes_hash["resource_bundles"] = nil 
+                    spec.attributes_hash["resources"] ||= []
+                    spec.attributes_hash["resources"] += bundle_names.map{|n| n+".bundle"}
+                end
+
                 # to avoid the warning of missing license
                 spec.attributes_hash["license"] = {} 
             end
