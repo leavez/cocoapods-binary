@@ -67,7 +67,7 @@ If bitcode is needed, add a `enable_bitcode_for_prebuilt_frameworks!` before all
 #### Known Issues
 
 - doesn't support watchos now
-- dSYM files is missing for dynamic frameworks using this plugin. Walkaround: Don't use this plugin for a release build. Add a if condition with ENV around `plugin 'cocoapods-binary'`
+- dSYM files is missing for dynamic frameworks using this plugin. Walkaround: Don't use this plugin for a release build. Add a if condition with ENV around `plugin 'cocoapods-binary'`. [(detail)](https://github.com/leavez/cocoapods-binary/issues/44)
 
 ## License
 
