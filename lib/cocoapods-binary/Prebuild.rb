@@ -126,10 +126,11 @@ module Pod
                 if target.static_framework? and !target.resource_paths.empty?
                     framework_path = output_path + target.framework_name
                     standard_sandbox_path = sandbox.standard_sanbox_path
-                    path_objects = target.resource_paths.select{|f| f.start_with? "${PODS_ROOT}"}.map do |path|
+                    path_objects = target.resource_paths.map do |path|
                         object = Prebuild::Passer::ResourcePath.new
                         object.real_file_path = framework_path + File.basename(path)
-                        object.target_file_path = path.gsub('${PODS_ROOT}', standard_sandbox_path.to_s)
+                        object.target_file_path = path.gsub('${PODS_ROOT}', standard_sandbox_path.to_s) if path.start_with? '${PODS_ROOT}'
+                        object.target_file_path = path.gsub("${PODS_CONFIGURATION_BUILD_DIR}", standard_sandbox_path.to_s) if path.start_with? "${PODS_CONFIGURATION_BUILD_DIR}"
                         object
                     end
                     Prebuild::Passer.resources_to_copy_for_static_framework[target.name] = path_objects
