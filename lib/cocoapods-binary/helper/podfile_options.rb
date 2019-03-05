@@ -11,13 +11,16 @@ module Pod
 
         ## --- option for setting using prebuild framework ---
         def parse_prebuild_framework(name, requirements)
+            should_prebuild = Pod::Podfile::DSL.prebuild_all
+
             options = requirements.last
-            return requirements unless options.is_a?(Hash)
+            if options.is_a?(Hash) && options[Pod::Prebuild.keyword] != nil 
+                should_prebuild = options.delete(Pod::Prebuild.keyword)
+                requirements.pop if options.empty?
+            end
     
-            should_prebuild_framework = options.delete(Pod::Prebuild.keyword)
             pod_name = Specification.root_name(name)
-            set_prebuild_for_pod(pod_name, should_prebuild_framework)
-            requirements.pop if options.empty?
+            set_prebuild_for_pod(pod_name, should_prebuild)
         end
         
         def set_prebuild_for_pod(pod_name, should_prebuild)
