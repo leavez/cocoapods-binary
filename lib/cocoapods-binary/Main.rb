@@ -64,6 +64,12 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
     
     Pod::UI.puts "🚀  Prebuild frameworks"
     
+    # Looks like this is the most appropriate way to figure out that something should be updated
+    include ObjectSpace
+    ObjectSpace.each_object(Pod::Installer) { |installer|
+        @update = installer.update
+        @repo_update = installer.repo_update
+    }
     
     # control features
     Pod.is_prebuild_stage = true
@@ -82,11 +88,11 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
     # install
     binary_installer = Pod::Installer.new(prebuild_sandbox, prebuild_podfile , nil)
     
-    if binary_installer.have_exact_prebuild_cache?
+    if binary_installer.have_exact_prebuild_cache? && !@update
         binary_installer.install_when_cache_hit!
     else
-        binary_installer.repo_update = false
-        binary_installer.update = false
+        binary_installer.update = @update
+        binary_installer.repo_update = @repo_update
         binary_installer.install!
     end
     
