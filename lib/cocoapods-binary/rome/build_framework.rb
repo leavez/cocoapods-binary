@@ -25,6 +25,7 @@ def build_for_iosish_platform(sandbox,
   other_options = [] 
   if bitcode_enabled
     other_options += ['OTHER_CFLAGS="-fembed-bitcode"']
+    other_options += ['BITCODE_GENERATION_MODE=bitcode']
   end
   xcodebuild(sandbox, target_label, device, deployment_target, other_options)
   xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'])
@@ -134,4 +135,3 @@ module Pod
 
   end
 end
-
