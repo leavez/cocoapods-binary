@@ -69,7 +69,7 @@ module Pod
                     walk(real_file_folder) do |child|
                         source = child
                         # only make symlink to file and `.framework` folder
-                        if child.directory? and child.extname == ".framework"
+                        if child.directory? and [".framework", ".dSYM"].include? child.extname
                             mirror_with_symlink(source, real_file_folder, target_folder)
                             next false  # return false means don't go deeper
                         elsif child.file?
@@ -262,8 +262,9 @@ module Pod
                     # ---- this is added by cocoapods-binary ---
                     # Readlink cannot handle relative symlink well, so we override it to a new one
                     # If the path isn't an absolute path, we add a realtive prefix.
+                    old_read_link=`which readlink`
                     readlink () {
-                        path=`/usr/bin/readlink $1`;
+                        path=`$old_read_link $1`;
                         if [ $(echo "$path" | cut -c 1-1) = '/' ]; then
                             echo $path;
                         else
@@ -272,6 +273,10 @@ module Pod
                     }
                     # --- 
                 SH
+
+                # patch the rsync for copy dSYM symlink
+                script = script.gsub "rsync --delete", "rsync --copy-links --delete"
+                
                 patch + script
             end
         end
