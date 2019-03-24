@@ -16,8 +16,8 @@ def build_for_iosish_platform(sandbox,
                               device, 
                               simulator,
                               bitcode_enabled,
-                              custom_build_options = [], # Array<string>
-                              custom_build_options_simulator = [] # Array<string>
+                              custom_build_options = [], # Array<String>
+                              custom_build_options_simulator = [] # Array<String>
                               )
 
   deployment_target = target.platform.deployment_target.to_s
