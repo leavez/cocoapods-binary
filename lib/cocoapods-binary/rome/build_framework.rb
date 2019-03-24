@@ -15,7 +15,10 @@ def build_for_iosish_platform(sandbox,
                               target, 
                               device, 
                               simulator,
-                              bitcode_enabled)
+                              bitcode_enabled,
+                              custom_build_options = [], # Array<string>
+                              custom_build_options_simulator = [] # Array<string>
+                              )
 
   deployment_target = target.platform.deployment_target.to_s
   
@@ -26,8 +29,9 @@ def build_for_iosish_platform(sandbox,
   if bitcode_enabled
     other_options += ['BITCODE_GENERATION_MODE=bitcode']
   end
-  xcodebuild(sandbox, target_label, device, deployment_target, other_options)
-  xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'])
+
+  xcodebuild(sandbox, target_label, device, deployment_target, other_options + custom_build_options)
+  xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'] + custom_build_options_simulator)
 
   # paths
   root_name = target.pod_name
@@ -94,7 +98,7 @@ module Pod
     #         [Pathname] output_path
     #         output path for generated frameworks
     #
-    def self.build(sandbox_root_path, target, output_path, bitcode_enabled = false)
+    def self.build(sandbox_root_path, target, output_path, bitcode_enabled = false, custom_build_options=[], custom_build_options_simulator=[])
     
       return unless not target == nil
     
@@ -104,8 +108,8 @@ module Pod
 
       # -- build the framework
       case target.platform.name
-      when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled)
-      when :osx then xcodebuild(sandbox, target.label)
+      when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled, custom_build_options, custom_build_options_simulator)
+      when :osx then xcodebuild(sandbox, target.label, 'macosx', nil, custom_build_options)
       # when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
       # when :watchos then build_for_iosish_platform(sandbox, build_dir, target, 'watchos', 'watchsimulator')
       else raise "Unsupported platform for '#{target.name}': '#{target.platform.name}'" end
