@@ -30,8 +30,9 @@ def build_for_iosish_platform(sandbox,
     other_options += ['BITCODE_GENERATION_MODE=bitcode']
   end
 
-  xcodebuild(sandbox, target_label, device, deployment_target, other_options + custom_build_options)
-  xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'] + custom_build_options_simulator)
+  is_succeed, _ = xcodebuild(sandbox, target_label, device, deployment_target, other_options + custom_build_options)
+  is_succeed2, _ = xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'] + custom_build_options_simulator)
+  exit 1 unless is_succeed && is_succeed2
 
   # paths
   root_name = target.pod_name
@@ -79,7 +80,11 @@ def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, other_optio
   platform = PLATFORMS[sdk]
   args += Fourflusher::SimControl.new.destination(:oldest, platform, deployment_target) unless platform.nil?
   args += other_options
-  Pod::Executable.execute_command 'xcodebuild', args, true
+  log = `xcodebuild #{args.join(" ")} 2>&1`
+  # log = Pod::Executable.execute_command 'xcodebuild', args, true
+  is_succeed = log[-25..-1].include? "** BUILD SUCCEEDED **"
+  puts log unless is_succeed
+  [is_succeed, log]
 end
 
 
