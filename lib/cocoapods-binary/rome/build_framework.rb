@@ -27,7 +27,7 @@ def build_for_iosish_platform(sandbox,
     other_options += ['BITCODE_GENERATION_MODE=bitcode']
   end
   xcodebuild(sandbox, target_label, device, deployment_target, other_options)
-  xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO', 'DEBUG_INFORMATION_FORMAT=dwarf'])
+  xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'])
 
   # paths
   root_name = target.pod_name
@@ -56,11 +56,11 @@ def build_for_iosish_platform(sandbox,
   # handle the dSYM files
   device_dsym = "#{device_framwork_path}.dSYM"
   if File.exist? device_dsym
-    ## lipo the simulator dsym
-    # tmp_lipoed_binary_path = "#{output_path}/#{module_name}.draft"
-    # lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_framwork_path}.dSYM/Contents/Resources/DWARF/#{module_name} #{simulator_framwork_path}.dSYM/Contents/Resources/DWARF/#{module_name}`
-    # puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
-    # FileUtils.mv tmp_lipoed_binary_path, "#{device_framwork_path}.dSYM/Contents/Resources/DWARF/#{module_name}", :force => true
+    # lipo the simulator dsym
+    tmp_lipoed_binary_path = "#{output_path}/#{module_name}.draft"
+    lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_dsym}/Contents/Resources/DWARF/#{module_name} #{simulator_framwork_path}.dSYM/Contents/Resources/DWARF/#{module_name}`
+    puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
+    FileUtils.mv tmp_lipoed_binary_path, "#{device_framwork_path}.dSYM/Contents/Resources/DWARF/#{module_name}", :force => true
     FileUtils.mv device_dsym, output_path, :force => true
   end
 
