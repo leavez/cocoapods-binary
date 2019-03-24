@@ -11,7 +11,6 @@ module Pod
 
         ## --- option for setting using prebuild framework ---
         def parse_prebuild_framework(name, requirements)
-
             should_prebuild = Pod::Podfile::DSL.prebuild_all
 
             options = requirements.last
