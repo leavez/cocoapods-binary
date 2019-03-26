@@ -126,7 +126,20 @@ module Pod
                 if target.static_framework? and !target.resource_paths.empty?
                     framework_path = output_path + target.framework_name
                     standard_sandbox_path = sandbox.standard_sanbox_path
-                    path_objects = target.resource_paths.map do |path|
+
+                    resources = begin
+                        if Pod::VERSION.start_with? "1.5"
+                            target.resource_paths
+                        else
+                            # resource_paths is Hash{String=>Array<String>} on 1.6 and above
+                            # (use AFNetworking to generate a demo data)
+                            # https://github.com/leavez/cocoapods-binary/issues/50
+                            target.resource_paths.values.flatten
+                        end
+                    end
+                    raise "Wrong type: #{resources}" unless resources.kind_of? Array
+
+                    path_objects = resources.map do |path|
                         object = Prebuild::Passer::ResourcePath.new
                         object.real_file_path = framework_path + File.basename(path)
                         object.target_file_path = path.gsub('${PODS_ROOT}', standard_sandbox_path.to_s) if path.start_with? '${PODS_ROOT}'
