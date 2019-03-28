@@ -83,10 +83,13 @@ def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, other_optio
   args += Fourflusher::SimControl.new.destination(:oldest, platform, deployment_target) unless platform.nil?
   args += other_options
   log = `xcodebuild #{args.join(" ")} 2>&1`
-  is_succeed = ($? == 0)
+  exit_code = $?.exitstatus  # Process::Status
+  is_succeed = (exit_code == 0)
 
   if !is_succeed
     begin
+      # 64 represent command invalid. http://www.manpagez.com/man/3/sysexits/
+      raise "shouldn't be handle by xcpretty" if exit_code == 64 
       printer = XCPretty::Printer.new({:formatter => XCPretty::Simple, :colorize => 'auto'})
       log.each_line do |line|
         printer.pretty_print(line)
