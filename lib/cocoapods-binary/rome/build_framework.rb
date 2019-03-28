@@ -1,4 +1,5 @@
 require 'fourflusher'
+require 'xcpretty'
 
 CONFIGURATION = "Release"
 PLATFORMS = { 'iphonesimulator' => 'iOS',
@@ -81,9 +82,14 @@ def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, other_optio
   args += Fourflusher::SimControl.new.destination(:oldest, platform, deployment_target) unless platform.nil?
   args += other_options
   log = `xcodebuild #{args.join(" ")} 2>&1`
-  # log = Pod::Executable.execute_command 'xcodebuild', args, true
-  is_succeed = log[-25..-1].include? "** BUILD SUCCEEDED **"
-  puts log unless is_succeed
+  is_succeed = ($? == 0)
+
+  if !is_succeed
+    printer = XCPretty::Printer.new({:formatter => XCPretty::Simple, :colorize => 'auto'})
+    log.each_line do |line|
+      printer.pretty_print(line)
+    end
+  end
   [is_succeed, log]
 end
 
