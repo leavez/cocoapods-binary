@@ -86,9 +86,13 @@ def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, other_optio
   is_succeed = ($? == 0)
 
   if !is_succeed
-    printer = XCPretty::Printer.new({:formatter => XCPretty::Simple, :colorize => 'auto'})
-    log.each_line do |line|
-      printer.pretty_print(line)
+    begin
+      printer = XCPretty::Printer.new({:formatter => XCPretty::Simple, :colorize => 'auto'})
+      log.each_line do |line|
+        printer.pretty_print(line)
+      end
+    rescue
+      puts log
     end
   end
   [is_succeed, log]
