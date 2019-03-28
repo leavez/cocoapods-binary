@@ -64,10 +64,14 @@ def build_for_iosish_platform(sandbox,
   device_dsym = "#{device_framwork_path}.dSYM"
   if File.exist? device_dsym
     # lipo the simulator dsym
-    tmp_lipoed_binary_path = "#{output_path}/#{module_name}.draft"
-    lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_dsym}/Contents/Resources/DWARF/#{module_name} #{simulator_framwork_path}.dSYM/Contents/Resources/DWARF/#{module_name}`
-    puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
-    FileUtils.mv tmp_lipoed_binary_path, "#{device_framwork_path}.dSYM/Contents/Resources/DWARF/#{module_name}", :force => true
+    simulator_dsym = "#{simulator_framwork_path}.dSYM"
+    if File.exist? simulator_dsym
+      tmp_lipoed_binary_path = "#{output_path}/#{module_name}.draft"
+      lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_dsym}/Contents/Resources/DWARF/#{module_name} #{simulator_dsym}/Contents/Resources/DWARF/#{module_name}`
+      puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
+      FileUtils.mv tmp_lipoed_binary_path, "#{device_framwork_path}.dSYM/Contents/Resources/DWARF/#{module_name}", :force => true
+    end
+    # move
     FileUtils.mv device_dsym, output_path, :force => true
   end
 
