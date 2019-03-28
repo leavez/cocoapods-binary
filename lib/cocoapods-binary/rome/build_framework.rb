@@ -32,8 +32,9 @@ def build_for_iosish_platform(sandbox,
   end
 
   is_succeed, _ = xcodebuild(sandbox, target_label, device, deployment_target, other_options + custom_build_options)
-  is_succeed2, _ = xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'] + custom_build_options_simulator)
-  exit 1 unless is_succeed && is_succeed2
+  exit 1 unless is_succeed
+  is_succeed, _ = xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'] + custom_build_options_simulator)
+  exit 1 unless is_succeed
 
   # paths
   root_name = target.pod_name
