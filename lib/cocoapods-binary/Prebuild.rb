@@ -123,12 +123,20 @@ module Pod
                 Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled)
 
                 # save the resource paths for later installing
+                #
+                # For cocoapods 1.6 and 1.5, static framework will copy resource files to
+                # the framework bundle. So we just save the path mapping
+                # (path in framework -> path in original pod folder)
+                #
+                # For cocoapods 1.7, static framework will only contain binary and headers(module).
+                # We should save the resources to prebuilt folder manually.
                 if target.static_framework? and !target.resource_paths.empty?
                     framework_path = output_path + target.framework_name
                     standard_sandbox_path = sandbox.standard_sanbox_path
 
+                    # get the resources paths
                     resources = begin
-                        if Pod::VERSION.start_with? "1.5"
+                        if Gem::Version.new(Pod::VERSION) >= Gem::Version.new('1.6.0')
                             target.resource_paths
                         else
                             # resource_paths is Hash{String=>Array<String>} on 1.6 and above
@@ -138,6 +146,33 @@ module Pod
                         end
                     end
                     raise "Wrong type: #{resources}" unless resources.kind_of? Array
+
+                    # convert to real path
+                    resources = resources.map do |path|
+                        p = path.gsub('${PODS_ROOT}', standard_sandbox_path.to_s) if path.start_with? '${PODS_ROOT}'
+                        p = path.gsub("${PODS_CONFIGURATION_BUILD_DIR}", standard_sandbox_path.to_s) if path.start_with? "${PODS_CONFIGURATION_BUILD_DIR}"
+                        p
+                    end
+
+                    # record and copy if needed
+                    if Gem::Version.new(Pod::VERSION) >= Gem::Version.new('1.7.0') || (Pod::VERSION.start_with? "1.7") # for 1.7beta
+                        # copy the resources
+                        resources_folder_in_prebuild = framework_path + "Resources"
+
+
+                        resources.each do |path|
+                            source = path.gsub('${PODS_ROOT}', standard_sandbox_path.to_s) if path.start_with? '${PODS_ROOT}'
+                            source = path.gsub("${PODS_CONFIGURATION_BUILD_DIR}", standard_sandbox_path.to_s) if path.start_with? "${PODS_CONFIGURATION_BUILD_DIR}"
+
+
+                            object = Prebuild::Passer::ResourcePath.new
+                            object.real_file_path = framework_path + File.basename(path)
+                            object.target_file_path = path.gsub('${PODS_ROOT}', standard_sandbox_path.to_s) if path.start_with? '${PODS_ROOT}'
+                            object.target_file_path = path.gsub("${PODS_CONFIGURATION_BUILD_DIR}", standard_sandbox_path.to_s) if path.start_with? "${PODS_CONFIGURATION_BUILD_DIR}"
+
+                            object
+                        end
+                    end
 
                     path_objects = resources.map do |path|
                         object = Prebuild::Passer::ResourcePath.new
