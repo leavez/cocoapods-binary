@@ -32,41 +32,41 @@ def build_for_iosish_platform(sandbox,
   # paths
   root_name = target.pod_name
   module_name = target.product_module_name
-  device_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{root_name}/#{module_name}.framework"
-  simulator_framwork_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{root_name}/#{module_name}.framework"
+  device_framework_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{root_name}/#{module_name}.framework"
+  simulator_framework_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{root_name}/#{module_name}.framework"
 
-  device_binary = device_framwork_path + "/#{module_name}"
-  simulator_binary = simulator_framwork_path + "/#{module_name}"
+  device_binary = device_framework_path + "/#{module_name}"
+  simulator_binary = simulator_framework_path + "/#{module_name}"
   return unless File.file?(device_binary) && File.file?(simulator_binary)
   
   # the device_lib path is the final output file path
-  # combine the bianries
+  # combine the binaries
   tmp_lipoed_binary_path = "#{build_dir}/#{root_name}"
   lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_binary} #{simulator_binary}`
   puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
   FileUtils.mv tmp_lipoed_binary_path, device_binary, :force => true
   
   # collect the swiftmodule file for various archs.
-  device_swiftmodule_path = device_framwork_path + "/Modules/#{module_name}.swiftmodule"
-  simulator_swiftmodule_path = simulator_framwork_path + "/Modules/#{module_name}.swiftmodule"
+  device_swiftmodule_path = device_framework_path + "/Modules/#{module_name}.swiftmodule"
+  simulator_swiftmodule_path = simulator_framework_path + "/Modules/#{module_name}.swiftmodule"
   if File.exist?(device_swiftmodule_path)
     FileUtils.cp_r simulator_swiftmodule_path + "/.", device_swiftmodule_path
   end
 
   # handle the dSYM files
-  device_dsym = "#{device_framwork_path}.dSYM"
+  device_dsym = "#{device_framework_path}.dSYM"
   if File.exist? device_dsym
     # lipo the simulator dsym
     tmp_lipoed_binary_path = "#{output_path}/#{module_name}.draft"
-    lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_dsym}/Contents/Resources/DWARF/#{module_name} #{simulator_framwork_path}.dSYM/Contents/Resources/DWARF/#{module_name}`
+    lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_dsym}/Contents/Resources/DWARF/#{module_name} #{simulator_framework_path}.dSYM/Contents/Resources/DWARF/#{module_name}`
     puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
-    FileUtils.mv tmp_lipoed_binary_path, "#{device_framwork_path}.dSYM/Contents/Resources/DWARF/#{module_name}", :force => true
+    FileUtils.mv tmp_lipoed_binary_path, "#{device_framework_path}.dSYM/Contents/Resources/DWARF/#{module_name}", :force => true
     FileUtils.mv device_dsym, output_path, :force => true
   end
 
   # output
   output_path.mkpath unless output_path.exist?
-  FileUtils.mv device_framwork_path, output_path, :force => true
+  FileUtils.mv device_framework_path, output_path, :force => true
 
 end
 
