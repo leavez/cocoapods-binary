@@ -1,0 +1,12 @@
+platform :ios, '9.0'
+plugin 'cocoapods-binary'
+
+use_frameworks!
+all_binary!
+
+
+target 'demo' do
+
+  pod 'Masonry'
+
+end
