@@ -53,6 +53,29 @@ def build_for_iosish_platform(sandbox,
     FileUtils.cp_r simulator_swiftmodule_path + "/.", device_swiftmodule_path
   end
 
+  # combine the generated swift headers
+  # (In xcode 10.2, the generated swift headers vary for each archs)
+  # https://github.com/leavez/cocoapods-binary/issues/58
+  simulator_generated_swift_header_path = simulator_framework_path + "/Headers/#{module_name}-Swift.h"
+  device_generated_swift_header_path = device_framework_path + "/Headers/#{module_name}-Swift.h"
+  if File.exist? simulator_generated_swift_header_path
+    device_header = File.read(device_generated_swift_header_path)
+    simulator_header = File.read(simulator_generated_swift_header_path)
+    # https://github.com/Carthage/Carthage/issues/2718#issuecomment-473870461
+    combined_header_content = %Q{
+#if TARGET_OS_SIMULATOR // merged by cocoapods-binary
+
+#{simulator_header}
+
+#else // merged by cocoapods-binary
+
+#{device_header}
+
+#endif // merged by cocoapods-binary
+}
+    File.write(device_generated_swift_header_path, combined_header_content.strip)
+  end
+
   # handle the dSYM files
   device_dsym = "#{device_framework_path}.dSYM"
   if File.exist? device_dsym
