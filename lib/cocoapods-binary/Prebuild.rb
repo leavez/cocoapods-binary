@@ -1,5 +1,7 @@
 require_relative 'rome/build_framework'
 require_relative 'helper/passer'
+require_relative 'helper/target_checker'
+
 
 # patch prebuild ability
 module Pod
@@ -112,6 +114,9 @@ module Pod
 
             targets = targets.reject {|pod_target| sandbox.local?(pod_target.pod_name) }
 
+            # check
+            # give a early warning, instead of after compiling all the pods
+            Prebuild.check_one_pod_should_have_only_one_target(targets)
             
             
             # build!
