@@ -116,7 +116,10 @@ module Pod
             Pod::UI.puts "Prebuild frameworks (total #{targets.count})"
             Pod::Prebuild.remove_build_dir(sandbox_path)
             targets.each do |target|
-                next unless target.should_build?
+                if !target.should_build?
+                    UI.puts "Prebuilding #{target.label}"
+                    next
+                end
 
                 output_path = sandbox.framework_folder_path_for_pod_name(target.name)
                 output_path.mkpath unless output_path.exist?
