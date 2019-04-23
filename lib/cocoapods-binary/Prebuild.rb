@@ -98,7 +98,9 @@ module Pod
                     sum
                 end
                 targets = root_names_to_update.map do |root_name|
-                    name_to_target_hash[root_name]
+                    t = name_to_target_hash[root_name]
+                    raise "There's no target named (#{root_name}) in Pod.xcodeproj.\n #{name_to_target_hash.keys}" if t.nil?
+                    t
                 end || []
 
                 # add the dendencies
