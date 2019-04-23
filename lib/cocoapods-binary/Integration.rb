@@ -132,7 +132,7 @@ module Pod
             # check the pods
             # Although we have did it in prebuild stage, it's not sufficient.
             # Same pod may appear in another target in form of source code.
-            Prebuild.check_one_pod_should_have_only_one_target(targets)
+            Prebuild.check_one_pod_should_have_only_one_target(self.prebuild_pod_targets)
 
             #
             specs = self.analysis_result.specifications

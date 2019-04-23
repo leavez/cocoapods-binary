@@ -116,8 +116,8 @@ module Pod
 
             # check
             # give a early warning, instead of after compiling all the pods
-            Prebuild.check_one_pod_should_have_only_one_target(targets)
             
+            Prebuild.check_one_pod_should_have_only_one_target(self.pod_targets)
             
             # build!
             Pod::UI.puts "Prebuild frameworks (total #{targets.count})"
