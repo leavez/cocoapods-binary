@@ -1,5 +1,7 @@
 require_relative 'rome/build_framework'
 require_relative 'helper/passer'
+require_relative 'helper/target_checker'
+
 
 # patch prebuild ability
 module Pod
@@ -67,6 +69,10 @@ module Pod
         # Build the needed framework files
         def prebuild_frameworks! 
 
+            # check
+            # give a early warning, instead of after compiling all the pods
+            Prebuild.check_one_pod_should_have_only_one_target(self.pod_targets)
+
             # build options
             sandbox_path = sandbox.root
             existed_framework_folder = sandbox.generate_framework_path
@@ -98,7 +104,9 @@ module Pod
                     sum
                 end
                 targets = root_names_to_update.map do |root_name|
-                    name_to_target_hash[root_name]
+                    t = name_to_target_hash[root_name]
+                    raise "There's no target named (#{root_name}) in Pod.xcodeproj.\n #{name_to_target_hash.keys}" if t.nil?
+                    t
                 end || []
 
                 # add the dendencies
@@ -111,12 +119,14 @@ module Pod
             targets = targets.reject {|pod_target| sandbox.local?(pod_target.pod_name) }
 
             
-            
             # build!
             Pod::UI.puts "Prebuild frameworks (total #{targets.count})"
             Pod::Prebuild.remove_build_dir(sandbox_path)
             targets.each do |target|
-                next unless target.should_build?
+                if !target.should_build?
+                    UI.puts "Prebuilding #{target.label}"
+                    next
+                end
 
                 output_path = sandbox.framework_folder_path_for_pod_name(target.name)
                 output_path.mkpath unless output_path.exist?

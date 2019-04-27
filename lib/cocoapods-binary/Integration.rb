@@ -2,6 +2,7 @@ require_relative 'helper/podfile_options'
 require_relative 'helper/feature_switches'
 require_relative 'helper/prebuild_sandbox'
 require_relative 'helper/passer'
+require_relative 'helper/target_checker'
 
 
 # NOTE:
@@ -128,18 +129,12 @@ module Pod
             # call original
             old_method2.bind(self).()
 
+            # check the pods
+            # Although we have did it in prebuild stage, it's not sufficient.
+            # Same pod may appear in another target in form of source code.
+            Prebuild.check_one_pod_should_have_only_one_target(self.prebuild_pod_targets)
 
-            # check the prebuilt targets 
-            targets = self.prebuild_pod_targets
-            targets_have_different_platforms = targets.select {|t| t.pod_name != t.name }
-
-            if targets_have_different_platforms.count > 0
-                names = targets_have_different_platforms.map(&:pod_name)
-                STDERR.puts "[!] Binary doesn't support pods who integrate in 2 or more platforms simultaneously: #{names}".red
-                exit
-            end
-
-
+            #
             specs = self.analysis_result.specifications
             prebuilt_specs = (specs.select do |spec|
                 self.prebuild_pod_names.include? spec.root.name
