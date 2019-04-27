@@ -33,6 +33,7 @@ module Pod
 
                 # make a relatvie symbol link for all children
                 def walk(path, &action)
+                    return unless path.exist?
                     path.children.each do |child|
                         result = action.call(child, &action)
                         if child.directory?
