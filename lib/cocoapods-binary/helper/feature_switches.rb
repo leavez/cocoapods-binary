@@ -24,7 +24,7 @@ module Pod
             define_method(:pod) do |name, *args|
                 if !@@enable_prebuild_patch
                     old_method.bind(self).(name, *args)
-                    return
+                    next
                 end
 
                 # patched content
@@ -41,7 +41,7 @@ module Pod
                     if current_target_definition.platform == :watchos
                         # watchos isn't supported currently
                         Pod::UI.warn "Binary doesn't support watchos currently: #{name}. You can manually set `binary => false` for this pod to suppress this warning."
-                        return
+                        next
                     end
                     old_method.bind(self).(name, *args)
                 end
@@ -59,7 +59,7 @@ module Pod
         old_method = instance_method(:integrate_user_project)
         define_method(:integrate_user_project) do 
             if @@force_disable_integration
-                return
+                next
             end
             old_method.bind(self).()
         end
@@ -74,7 +74,7 @@ module Pod
         old_method = instance_method(:print_post_install_message)
         define_method(:print_post_install_message) do 
             if @@disable_install_complete_message
-                return
+                next
             end
             old_method.bind(self).()
         end
@@ -92,9 +92,9 @@ module Pod
         define_method(:lockfile_path) do 
             if @@force_disable_write_lockfile
                 # As config is a singleton, sandbox_root refer to the standard sandbox.
-                return PrebuildSandbox.from_standard_sanbox_path(sandbox_root).root + 'Manifest.lock.tmp'
+                next PrebuildSandbox.from_standard_sanbox_path(sandbox_root).root + 'Manifest.lock.tmp'
             else
-                return old_method.bind(self).()
+                next old_method.bind(self).()
             end
         end
     end
