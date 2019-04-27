@@ -130,7 +130,7 @@ module Pod
 
                 output_path = sandbox.framework_folder_path_for_pod_name(target.name)
                 output_path.mkpath unless output_path.exist?
-                Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled)
+                Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled,  Podfile::DSL.custom_build_options,  Podfile::DSL.custom_build_options_simulator)
 
                 # save the resource paths for later installing
                 if target.static_framework? and !target.resource_paths.empty?

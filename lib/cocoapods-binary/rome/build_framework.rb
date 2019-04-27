@@ -1,4 +1,5 @@
 require 'fourflusher'
+require 'xcpretty'
 
 CONFIGURATION = "Release"
 PLATFORMS = { 'iphonesimulator' => 'iOS',
@@ -15,7 +16,10 @@ def build_for_iosish_platform(sandbox,
                               target, 
                               device, 
                               simulator,
-                              bitcode_enabled)
+                              bitcode_enabled,
+                              custom_build_options = [], # Array<String>
+                              custom_build_options_simulator = [] # Array<String>
+                              )
 
   deployment_target = target.platform.deployment_target.to_s
   
@@ -26,8 +30,11 @@ def build_for_iosish_platform(sandbox,
   if bitcode_enabled
     other_options += ['BITCODE_GENERATION_MODE=bitcode']
   end
-  xcodebuild(sandbox, target_label, device, deployment_target, other_options)
-  xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'])
+
+  is_succeed, _ = xcodebuild(sandbox, target_label, device, deployment_target, other_options + custom_build_options)
+  exit 1 unless is_succeed
+  is_succeed, _ = xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'] + custom_build_options_simulator)
+  exit 1 unless is_succeed
 
   # paths
   root_name = target.pod_name
@@ -80,10 +87,14 @@ def build_for_iosish_platform(sandbox,
   device_dsym = "#{device_framework_path}.dSYM"
   if File.exist? device_dsym
     # lipo the simulator dsym
-    tmp_lipoed_binary_path = "#{output_path}/#{module_name}.draft"
-    lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_dsym}/Contents/Resources/DWARF/#{module_name} #{simulator_framework_path}.dSYM/Contents/Resources/DWARF/#{module_name}`
-    puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
-    FileUtils.mv tmp_lipoed_binary_path, "#{device_framework_path}.dSYM/Contents/Resources/DWARF/#{module_name}", :force => true
+    simulator_dsym = "#{simulator_framework_path}.dSYM"
+    if File.exist? simulator_dsym
+      tmp_lipoed_binary_path = "#{output_path}/#{module_name}.draft"
+      lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_dsym}/Contents/Resources/DWARF/#{module_name} #{simulator_dsym}/Contents/Resources/DWARF/#{module_name}`
+      puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
+      FileUtils.mv tmp_lipoed_binary_path, "#{device_framework_path}.dSYM/Contents/Resources/DWARF/#{module_name}", :force => true
+    end
+    # move
     FileUtils.mv device_dsym, output_path, :force => true
   end
 
@@ -98,7 +109,23 @@ def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, other_optio
   platform = PLATFORMS[sdk]
   args += Fourflusher::SimControl.new.destination(:oldest, platform, deployment_target) unless platform.nil?
   args += other_options
-  Pod::Executable.execute_command 'xcodebuild', args, true
+  log = `xcodebuild #{args.join(" ")} 2>&1`
+  exit_code = $?.exitstatus  # Process::Status
+  is_succeed = (exit_code == 0)
+
+  if !is_succeed
+    begin
+      # 64 represent command invalid. http://www.manpagez.com/man/3/sysexits/
+      raise "shouldn't be handle by xcpretty" if exit_code == 64 
+      printer = XCPretty::Printer.new({:formatter => XCPretty::Simple, :colorize => 'auto'})
+      log.each_line do |line|
+        printer.pretty_print(line)
+      end
+    rescue
+      puts log
+    end
+  end
+  [is_succeed, log]
 end
 
 
@@ -117,7 +144,7 @@ module Pod
     #         [Pathname] output_path
     #         output path for generated frameworks
     #
-    def self.build(sandbox_root_path, target, output_path, bitcode_enabled = false)
+    def self.build(sandbox_root_path, target, output_path, bitcode_enabled = false, custom_build_options=[], custom_build_options_simulator=[])
     
       return unless not target == nil
     
@@ -127,8 +154,8 @@ module Pod
 
       # -- build the framework
       case target.platform.name
-      when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled)
-      when :osx then xcodebuild(sandbox, target.label)
+      when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled, custom_build_options, custom_build_options_simulator)
+      when :osx then xcodebuild(sandbox, target.label, 'macosx', nil, custom_build_options)
       # when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
       # when :watchos then build_for_iosish_platform(sandbox, build_dir, target, 'watchos', 'watchsimulator')
       else raise "Unsupported platform for '#{target.name}': '#{target.platform.name}'" end
