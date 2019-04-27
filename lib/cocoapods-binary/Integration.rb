@@ -147,10 +147,10 @@ module Pod
                 sum
             end
 
-            prebuilt_specs.each do |spec|
+            prebuilt_specs.each do |spec| #TODO subspec!
                 # `spec` may be a subspec, so we use the root's name 
                 root_name = spec.root.name
-                
+
                 target = name_to_target_hash[root_name]
                 next if Prebuild::Passer.target_names_to_skip_integration_framework.include? target.pod_name
 
@@ -204,6 +204,8 @@ module Pod
             pod_installer = create_pod_installer(pod_name)
             # \copy from original
 
+            p self.prebuild_pod_names
+            exit
             if self.prebuild_pod_names.include? pod_name
                 pod_installer.install_for_prebuild!(self.sandbox)
             else

@@ -24,6 +24,8 @@ module Pod
         end
         
         def set_prebuild_for_pod(pod_name, should_prebuild)
+            p self
+            p pod_name
             
             if should_prebuild == true
                 # watchos isn't supported currently
@@ -37,16 +39,16 @@ module Pod
             end
         end
 
-        def prebuild_framework_names
+        def prebuild_framework_names(inherent_parent: true)
             names = @prebuild_framework_names || []
-            if parent != nil and parent.kind_of? TargetDefinition
+            if inherent_parent && parent != nil && parent.kind_of?(TargetDefinition)
                 names += parent.prebuild_framework_names
             end
             names
         end
-        def should_not_prebuild_framework_names
+        def should_not_prebuild_framework_names(inherent_parent: true)
             names = @should_not_prebuild_framework_names || []
-            if parent != nil and parent.kind_of? TargetDefinition
+            if inherent_parent && parent != nil && parent.kind_of?(TargetDefinition)
                 names += parent.should_not_prebuild_framework_names
             end
             names

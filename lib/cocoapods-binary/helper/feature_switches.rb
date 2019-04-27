@@ -21,6 +21,7 @@ module Pod
             # --- patch ---
             old_method = instance_method(:pod)
 
+            # 包含所有 subspec！！！！！！
             define_method(:pod) do |name, *args|
                 if !@@enable_prebuild_patch
                     old_method.bind(self).(name, *args)

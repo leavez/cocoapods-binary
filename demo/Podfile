@@ -1,12 +1,43 @@
-platform :ios, '9.0'
-plugin 'cocoapods-binary'
+source 'https://github.com/CocoaPods/Specs.git'
 
+ plugin 'cocoapods-binary'
+platform :ios, '11.2'
 use_frameworks!
+inhibit_all_warnings!
 all_binary!
 
-
 target 'demo' do
+  # RxSwift
 
-  pod 'Masonry'
-
+  # Firebase
+  pod 'Firebase/Core', :binary => true
+  pod 'Firebase/Firestore'
+  pod 'Firebase/Auth'
+  pod 'CodableFirebase'
 end
+
+ target 'demoTests' do
+
+   pod 'Firebase/Core'
+   pod 'Firebase/Firestore'
+   pod 'CodableFirebase'
+ end
+
+# target 'AnimalHouseHttpContractTests' do
+#   pod 'RxSwift'
+#   pod 'RxCocoa'
+  
+#   pod 'RxBlocking'
+# end
+
+# target 'RoadTripTests' do
+#   pod 'RxSwift'
+#   pod 'RxCocoa'
+#   pod 'RxDataSources'
+  
+#   pod 'Firebase/Core'
+#   pod 'Firebase/Auth'
+  
+#   pod 'RxTest'
+#   pod 'RxBlocking'
+# end

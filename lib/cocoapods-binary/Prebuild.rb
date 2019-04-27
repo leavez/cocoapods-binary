@@ -1,4 +1,5 @@
 require_relative 'rome/build_framework'
+require_relative 'helper/filter_for_prebuild_project'
 require_relative 'helper/passer'
 require_relative 'helper/target_checker'
 
@@ -219,7 +220,12 @@ module Pod
 
 
         end
-        
+
+
+        # patch!
+        patch_method_before :install! do |*args|
+            Prebuild.filter_podfile_content_for_prebuild_stage(podfile)
+        end
         
         # patch the post install hook
         old_method2 = instance_method(:run_plugins_post_install_hooks)
