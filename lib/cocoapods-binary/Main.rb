@@ -24,7 +24,7 @@ module Pod
                 DSL.dont_remove_source_code = true
             end
 
-            # Add custom xcodebuild option to the prebuiling aciton
+            # Add custom xcodebuild option to the prebuilding action
             #
             # You may use this for your special demands. For example: the default archs in dSYMs 
             # of prebuilt frameworks is 'arm64 armv7 x86_64', and no 'i386' for 32bit simulator.
@@ -33,7 +33,12 @@ module Pod
             # 
             #  ` set_custom_xcodebuild_options_for_prebuilt_frameworks :simulator => "ARCHS=$(ARCHS_STANDARD)" `
             #
-            # @options String or Hash
+            # Another example to disable the generating of dSYM file:
+            #
+            #  ` set_custom_xcodebuild_options_for_prebuilt_frameworks "DEBUG_INFORMATION_FORMAT=dwarf"`
+            # 
+            #
+            # @param [String or Hash] options
             #
             #   If is a String, it will apply for device and simulator. Use it just like in the commandline.
             #   If is a Hash, it should be like this: { :device => "XXXXX", :simulator => "XXXXX" }
