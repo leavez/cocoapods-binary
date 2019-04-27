@@ -1,5 +1,5 @@
-require_relative '../tool/tool'
-require_relative 'prebuild_sandbox'
+require 'cocoapods-binary/tool/tool'
+require_relative '../extensions/prebuild_sandbox'
 
 module Pod
 

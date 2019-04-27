@@ -1,5 +1,5 @@
 # encoding: UTF-8
-require_relative 'helper/podfile_options'
+require_relative 'extensions/podfile_options'
 require_relative 'tool/tool'
 
 module Pod    
@@ -59,7 +59,7 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
     # -- step 1: prebuild framework ---
     # Execute a sperated pod install, to generate targets for building framework,
     # then compile them to framework files.
-    require_relative 'helper/prebuild_sandbox'
+    require_relative 'extensions/prebuild_sandbox'
     require_relative 'Prebuild'
     
     Pod::UI.puts "🚀  Prebuild frameworks"
