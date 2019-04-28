@@ -187,11 +187,17 @@ module Pod
             end)
 
             prebuilt_specs.each do |spec|
-                # `spec` may be a subspec, so we use the root's name 
+                # `spec` may be a subspec, so we use the root's name
+                p spec.name
+                p spec.target_definition
+                p spec.target_definition.
                 root_name = spec.root.name
                 #TODO target_name pod_name!!!!
                 target = name_to_target_hash[root_name]
                 next if Prebuild::Passer.target_names_to_skip_integration_framework.include? target.name
+
+
+                p ",,", target.target_definition
 
 
                 # Use the prebuild framworks as vendered frameworks

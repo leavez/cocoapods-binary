@@ -1,4 +1,4 @@
-require_relative "names"
+require_relative "../helper/names"
 
 module Pod
     class PrebuildSandbox < Sandbox
