@@ -13,13 +13,14 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/leavez/cocoapods-binary'
   spec.license       = 'MIT'
 
-  spec.files         = `git ls-files`.split($/).reject{|f| f.start_with? "test/"}
+  spec.files         = `git ls-files`.split($/).reject{|f| f.start_with?("test/") || f.start_with?('demo/')}
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
   spec.add_dependency "cocoapods", ">= 1.5.0", "< 2.0"
   spec.add_dependency "fourflusher", "~> 2.0"
+  spec.add_dependency "xcpretty", "~> 0.3.0"
 
   spec.add_development_dependency 'bundler', '~> 1.3'
   spec.add_development_dependency 'rake'

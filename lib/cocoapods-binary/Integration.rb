@@ -3,7 +3,7 @@ require_relative 'helper/feature_switches'
 require_relative 'helper/prebuild_sandbox'
 require_relative 'helper/passer'
 require_relative 'helper/names'
-
+require_relative 'helper/target_checker'
 
 
 # NOTE:
@@ -30,6 +30,7 @@ module Pod
                 target_names = prebuild_sandbox.existed_target_names_for_pod_name(self.name)
                 
                 def walk(path, &action)
+                    return unless path.exist?
                     path.children.each do |child|
                         result = action.call(child, &action)
                         if child.directory?
@@ -150,8 +151,10 @@ module Pod
             # ...
             # after finishing the very complex orginal function
 
-
-            # check
+            # check the pods
+            # Although we have did it in prebuild stage, it's not sufficient.
+            # Same pod may appear in another target in form of source code.
+            # Prebuild.check_one_pod_should_have_only_one_target(self.prebuild_pod_targets)
             self.validate_every_pod_only_have_one_form
 
             
@@ -175,6 +178,7 @@ module Pod
                     end
                 end
             end
+
 
             specs = self.analysis_result.specifications
             prebuilt_specs = (specs.select do |spec|

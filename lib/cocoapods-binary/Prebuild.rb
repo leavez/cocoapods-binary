@@ -1,5 +1,7 @@
 require_relative 'rome/build_framework'
 require_relative 'helper/passer'
+require_relative 'helper/target_checker'
+
 
 # patch prebuild ability
 module Pod
@@ -65,6 +67,10 @@ module Pod
         # Build the needed framework files
         def prebuild_frameworks! 
 
+            # check
+            # give a early warning, instead of after compiling all the pods
+            Prebuild.check_one_pod_should_have_only_one_target(self.pod_targets)
+
             # build options
             sandbox_path = sandbox.root
             existed_framework_folder = sandbox.generate_framework_path
@@ -93,7 +99,11 @@ module Pod
                 # transform names to targets
                 cache = []
                 targets = root_names_to_update.map do |pod_name|
-                    Pod.fast_get_targets_for_pod_name(pod_name, self.pod_targets, cache)
+                    tars = Pod.fast_get_targets_for_pod_name(pod_name, self.pod_targets, cache)
+                    if tars.nil? || tars.empty?
+                        raise "There's no target named (#{pod_name}) in Pod.xcodeproj.\n #{self.pod_targets.map(&:name)}" if t.nil?
+                    end
+                    tars
                 end.flatten
 
                 # add the dendencies
@@ -106,16 +116,18 @@ module Pod
             targets = targets.reject {|pod_target| sandbox.local?(pod_target.pod_name) }
 
             
-            
             # build!
             Pod::UI.puts "Prebuild frameworks (total #{targets.count})"
             Pod::Prebuild.remove_build_dir(sandbox_path)
             targets.each do |target|
-                next unless target.should_build?
-                output_path = sandbox.framework_folder_path_for_target_name(target.name)
+                if !target.should_build?
+                    UI.puts "Prebuilding #{target.label}"
+                    next
+                end
 
+                output_path = sandbox.framework_folder_path_for_target_name(target.name)
                 output_path.mkpath unless output_path.exist?
-                Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled)
+                Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled,  Podfile::DSL.custom_build_options,  Podfile::DSL.custom_build_options_simulator)
 
                 # save the resource paths for later installing
                 if target.static_framework? and !target.resource_paths.empty?
