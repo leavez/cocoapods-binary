@@ -116,14 +116,18 @@ def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, other_optio
 
   if !is_succeed
     begin
-      # 64 represent command invalid. http://www.manpagez.com/man/3/sysexits/
-      raise "shouldn't be handle by xcpretty" if exit_code == 64 
-      printer = XCPretty::Printer.new({:formatter => XCPretty::Simple, :colorize => 'auto'})
-      log.each_line do |line|
-        printer.pretty_print(line)
-      end
+        if log.include?('** BUILD FAILED **')
+            # use xcpretty to print build log
+            # 64 represent command invalid. http://www.manpagez.com/man/3/sysexits/
+            printer = XCPretty::Printer.new({:formatter => XCPretty::Simple, :colorize => 'auto'})
+            log.each_line do |line|
+              printer.pretty_print(line)
+            end
+        else
+            raise "shouldn't be handle by xcpretty"
+        end
     rescue
-      puts log
+        puts log.red
     end
   end
   [is_succeed, log]
