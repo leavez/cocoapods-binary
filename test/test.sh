@@ -7,54 +7,11 @@ build() {
 		
 rm -rf Pods
 
-python change_podfile.py "initial"
-pod install
-build
+cases=("initial" "addSwiftPod" "revertToSourceCode" "addDifferentNamePod" "addSubPod" "deleteAPod" "addVendoredLibPod" "universalFlag" "multiplePlatforms" "multiplePlatformsWithALLFlag")
+for action in ${cases[@]}; do
+    python change_podfile.py ${action}
+    bundle exec pod install
+    build
+done
 
-# 
-python change_podfile.py "addSwiftPod"
-pod install
-build
-
-# 
-python change_podfile.py "revertToSourceCode"
-pod install
-build
-
-# 
-python change_podfile.py "addDifferentNamePod"
-pod install
-build
-
-# 
-python change_podfile.py "addSubPod"
-pod install
-build
-
-# 
-python change_podfile.py "deleteAPod"
-pod install
-build
-
-#
-python change_podfile.py "addVendoredLibPod"
-pod install
-build
-
-#
-python change_podfile.py "universalFlag"
-pod install
-build
-
-#
-python change_podfile.py "multiplePlatforms"
-pod install
-build
-
-#
-python change_podfile.py "multiplePlatformsWithALLFlag"
-pod install
-build
-
-#
 exit 0
