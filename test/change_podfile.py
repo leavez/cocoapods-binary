@@ -4,6 +4,7 @@ import sys
 def wrapper(content):
     return """
 platform :ios, '9.0'
+inhibit_all_warnings!
 use_frameworks!
 plugin "cocoapods-binary"
 
@@ -25,6 +26,12 @@ def save_to_podfile(text):
     file.write(text[1])
     file.close()
 
+    path = os.path.dirname(os.path.abspath(__file__))
+    path += "/BinaryWatch Extension/import.swift"
+    file = open(path, "w+")
+    file.write( "" if len(text) <= 2 else text[2])
+    file.close()
+
 
 
 def initial():
@@ -36,6 +43,9 @@ pod "Masonry"
 """), 
 """
 import Masonry
+class A {
+    let d = UIView().mas_top
+}
 """)
 
 def addSwiftPod():
@@ -49,6 +59,10 @@ pod "Literal", :binary => true
 """
 import RxCocoa
 import Literal
+class A {
+    let a: CGRect = [1,2,3,4]
+    func dd() { NSObject().rx.observe(CGRect.self, "frame") }
+}
 """)
 
 def revertToSourceCode():
@@ -61,7 +75,13 @@ pod "Literal"
 """), 
 """
 import RxCocoa
+import RxSwift
 import Literal
+class A {
+    let a: CGRect = [1,2,3,4]
+    let b = Observable.just(1)
+    func dd() { NSObject().rx.observe(CGRect.self, "frame") }
+}
 """) 
 
 def addDifferentNamePod():
@@ -77,6 +97,11 @@ pod "lottie-ios", :binary => true
 import Masonry
 import Literal
 import Lottie
+class A {
+    let a: CGRect = [1,2,3,4]
+    let a2 = AnimationView.self
+    let d = UIView().mas_top
+}
 """) 
 
 
@@ -93,6 +118,12 @@ import Masonry
 import Literal
 import Lottie
 import AFNetworking
+class A {
+    let a: CGRect = [1,2,3,4]
+    let a2 = AnimationView.self
+    let b = AFNetworkReachabilityManager()
+    let d = UIView().mas_top
+}
 """) 
 
 def addVendoredLibPod():
@@ -107,6 +138,11 @@ pod "GrowingIO", :binary => true
 import Literal
 import AFNetworking
 import Instabug
+class A {
+    let a: CGRect = [1,2,3,4]
+    let b = AFNetworkReachabilityManager()
+    let c = Instabug.self
+}
 """) 
 
 def deleteAPod():
@@ -118,6 +154,10 @@ pod "AFNetworking/Reachability", :binary => true
 """
 import Literal
 import AFNetworking
+class A {
+    let a: CGRect = [1,2,3,4]
+    let b = AFNetworkReachabilityManager()
+}
 """) 
 
 def universalFlag():
@@ -131,9 +171,67 @@ pod "AFNetworking/Reachability"
 """
 import Literal
 import AFNetworking
+class A {
+    let a: CGRect = [1,2,3,4]
+    let b = AFNetworkReachabilityManager()
+}
 """) 
     
+def multiplePlatforms():
+    return (wrapper(
+"""
+pod "Literal", :binary => true
+pod "AFNetworking/Serialization", :binary => true
+end
 
+target 'BinaryWatch Extension' do
+    platform :watchos
+    pod "AFNetworking/Serialization", :binary => true
+""") , 
+"""
+import Literal
+import AFNetworking
+class A {
+    let a: CGRect = [1,2,3,4]
+    func dd() {  _ = AFURLRequestSerializationErrorDomain   }
+}
+""",
+"""
+import AFNetworking
+class A {
+    func dd() { _ = AFURLRequestSerializationErrorDomain }
+}
+"""
+) 
+
+def multiplePlatformsWithALLFlag():
+    return (wrapper(
+"""
+all_binary!
+
+pod "Literal"
+pod "AFNetworking/Serialization"
+end
+
+target 'BinaryWatch Extension' do
+    platform :watchos
+    pod "AFNetworking/Serialization"
+""") , 
+"""
+import Literal
+import AFNetworking
+class A {
+    let a: CGRect = [1,2,3,4]
+    func dd() {  _ = AFURLRequestSerializationErrorDomain   }
+}
+""",
+"""
+import AFNetworking
+class A {
+    func dd() { _ = AFURLRequestSerializationErrorDomain }
+}
+"""
+) 
 
 
 if __name__ == "__main__":

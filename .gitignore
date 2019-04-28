@@ -3,6 +3,7 @@ pkg
 .idea/
 
 test/Pods
+test/Gemfile.lock
 
 ## Various settings
 *.pbxuser

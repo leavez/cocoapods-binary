@@ -24,6 +24,37 @@ module Pod
                 DSL.dont_remove_source_code = true
             end
 
+            # Add custom xcodebuild option to the prebuilding action
+            #
+            # You may use this for your special demands. For example: the default archs in dSYMs 
+            # of prebuilt frameworks is 'arm64 armv7 x86_64', and no 'i386' for 32bit simulator.
+            # It may generate a warning when building for a 32bit simulator. You may add following
+            # to your podfile
+            # 
+            #  ` set_custom_xcodebuild_options_for_prebuilt_frameworks :simulator => "ARCHS=$(ARCHS_STANDARD)" `
+            #
+            # Another example to disable the generating of dSYM file:
+            #
+            #  ` set_custom_xcodebuild_options_for_prebuilt_frameworks "DEBUG_INFORMATION_FORMAT=dwarf"`
+            # 
+            #
+            # @param [String or Hash] options
+            #
+            #   If is a String, it will apply for device and simulator. Use it just like in the commandline.
+            #   If is a Hash, it should be like this: { :device => "XXXXX", :simulator => "XXXXX" }
+            #
+            def set_custom_xcodebuild_options_for_prebuilt_frameworks(options)
+                if options.kind_of? Hash
+                    DSL.custom_build_options = [ options[:device] ] unless options[:device].nil?
+                    DSL.custom_build_options_simulator = [ options[:simulator] ] unless options[:simulator].nil?
+                elsif options.kind_of? String
+                    DSL.custom_build_options = [options]
+                    DSL.custom_build_options_simulator = [options]
+                else
+                    raise "Wrong type."
+                end
+            end
+
             private
             class_attr_accessor :prebuild_all
             prebuild_all = false
@@ -33,6 +64,11 @@ module Pod
 
             class_attr_accessor :dont_remove_source_code
             dont_remove_source_code = false
+
+            class_attr_accessor :custom_build_options
+            class_attr_accessor :custom_build_options_simulator
+            self.custom_build_options = []
+            self.custom_build_options_simulator = []
         end
     end
 end
@@ -48,7 +84,7 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
     # check user_framework is on
     podfile = installer_context.podfile
     podfile.target_definition_list.each do |target_definition|
-        next if target_definition.prebuild_framework_names.empty?
+        next if target_definition.prebuild_framework_pod_names.empty?
         if not target_definition.uses_frameworks?
             STDERR.puts "[!] Cocoapods-binary requires `use_frameworks!`".red
             exit
@@ -110,6 +146,7 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
     Pod::Podfile::DSL.enable_prebuild_patch false
     Pod::Config.force_disable_write_lockfile false
     Pod::Installer.disable_install_complete_message false
+    Pod::UserInterface.warnings = [] # clean the warning in the prebuild step, it's duplicated.
     
     
     # -- step 2: pod install ---

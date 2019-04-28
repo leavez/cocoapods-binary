@@ -1,0 +1,10 @@
+Thanks for your feedback!
+
+If it's a bug:
+
+- What's your environment:
+  - run ` pod env | egrep 'CocoaPods |Xcode|cocoapods-binary' ` then paste the result here 
+- A demo project is helpful:
+  - It will be very helpful if provides a demo project that reproduce the problem. A blank project with cocoapods-binary can be downloaded [here](https://github.com/leavez/cocoapods-binary/files/3086250/BinaryDemo.zip), which can be remodeled to a minimal problematic environment. Attach the demo.zip to the comments.
+
+

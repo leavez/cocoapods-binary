@@ -46,11 +46,9 @@ module Pod
             unchanged = changes.unchanged
             deleted = changes.deleted 
             
-            unchange_framework_names = (added + unchanged)
-
-            exsited_framework_names = sandbox.exsited_framework_names
+            exsited_framework_pod_names = sandbox.exsited_framework_pod_names
             missing = unchanged.select do |pod_name|
-                not exsited_framework_names.include?(pod_name)
+                not exsited_framework_pod_names.include?(pod_name)
             end
 
             needed = (added + changed + deleted + missing)
@@ -61,7 +59,7 @@ module Pod
         # The install method when have completed cache
         def install_when_cache_hit!
             # just print log
-            self.sandbox.exsited_framework_names.each do |name|
+            self.sandbox.exsited_framework_target_names.each do |name|
                 UI.puts "Using #{name}"
             end
         end
@@ -69,10 +67,6 @@ module Pod
 
         # Build the needed framework files
         def prebuild_frameworks! 
-
-            # check
-            # give a early warning, instead of after compiling all the pods
-            Prebuild.check_one_pod_should_have_only_one_target(self.pod_targets)
 
             # build options
             sandbox_path = sandbox.root
@@ -89,26 +83,25 @@ module Pod
                 deleted = changes.deleted 
     
                 existed_framework_folder.mkdir unless existed_framework_folder.exist?
-                exsited_framework_names = sandbox.exsited_framework_names
+                exsited_framework_pod_names = sandbox.exsited_framework_pod_names
     
                 # additions
                 missing = unchanged.select do |pod_name|
-                    not exsited_framework_names.include?(pod_name)
+                    not exsited_framework_pod_names.include?(pod_name)
                 end
 
 
                 root_names_to_update = (added + changed + missing)
 
                 # transform names to targets
-                name_to_target_hash = self.pod_targets.reduce({}) do |sum, target|
-                    sum[target.name] = target
-                    sum
-                end
-                targets = root_names_to_update.map do |root_name|
-                    t = name_to_target_hash[root_name]
-                    raise "There's no target named (#{root_name}) in Pod.xcodeproj.\n #{name_to_target_hash.keys}" if t.nil?
-                    t
-                end || []
+                cache = []
+                targets = root_names_to_update.map do |pod_name|
+                    tars = Pod.fast_get_targets_for_pod_name(pod_name, self.pod_targets, cache)
+                    if tars.nil? || tars.empty?
+                        raise "There's no target named (#{pod_name}) in Pod.xcodeproj.\n #{self.pod_targets.map(&:name)}" if t.nil?
+                    end
+                    tars
+                end.flatten
 
                 # add the dendencies
                 dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
@@ -129,9 +122,9 @@ module Pod
                     next
                 end
 
-                output_path = sandbox.framework_folder_path_for_pod_name(target.name)
+                output_path = sandbox.framework_folder_path_for_target_name(target.name)
                 output_path.mkpath unless output_path.exist?
-                Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled)
+                Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled,  Podfile::DSL.custom_build_options,  Podfile::DSL.custom_build_options_simulator)
 
                 # save the resource paths for later installing
                 if target.static_framework? and !target.resource_paths.empty?
@@ -159,6 +152,7 @@ module Pod
                     end
                     Prebuild::Passer.resources_to_copy_for_static_framework[target.name] = path_objects
                 end
+
             end            
             Pod::Prebuild.remove_build_dir(sandbox_path)
 
@@ -166,12 +160,12 @@ module Pod
             # copy vendored libraries and frameworks
             targets.each do |target|
                 root_path = self.sandbox.pod_dir(target.name)
-                target_folder = sandbox.framework_folder_path_for_pod_name(target.name)
+                target_folder = sandbox.framework_folder_path_for_target_name(target.name)
                 
                 # If target shouldn't build, we copy all the original files
                 # This is for target with only .a and .h files
                 if not target.should_build? 
-                    Prebuild::Passer.target_names_to_skip_integration_framework << target.pod_name
+                    Prebuild::Passer.target_names_to_skip_integration_framework << target.name
                     FileUtils.cp_r(root_path, target_folder, :remove_destination => true)
                     next
                 end
@@ -189,15 +183,20 @@ module Pod
                     end
                 end
             end
+
+            # save the pod_name for prebuild framwork in sandbox 
+            targets.each do |target|
+                sandbox.save_pod_name_for_target target
+            end
             
             # Remove useless files
             # remove useless pods
             all_needed_names = self.pod_targets.map(&:name).uniq
-            useless_names = sandbox.exsited_framework_names.reject do |name| 
+            useless_target_names = sandbox.exsited_framework_target_names.reject do |name| 
                 all_needed_names.include? name
             end
-            useless_names.each do |name|
-                path = sandbox.framework_folder_path_for_pod_name(name)
+            useless_target_names.each do |name|
+                path = sandbox.framework_folder_path_for_target_name(name)
                 path.rmtree if path.exist?
             end
 

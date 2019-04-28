@@ -1,9 +1,10 @@
 PATH
   remote: ..
   specs:
-    cocoapods-binary (0.4.3)
+    cocoapods-binary (0.4.4)
       cocoapods (>= 1.5.0, < 2.0)
       fourflusher (~> 2.0)
+      xcpretty (~> 0.3.0)
 
 GEM
   remote: https://rubygems.org/
@@ -62,6 +63,7 @@ GEM
     nanaimo (0.2.6)
     nap (1.1.0)
     netrc (0.11.0)
+    rouge (2.0.7)
     ruby-macho (1.4.0)
     thread_safe (0.3.6)
     tzinfo (1.2.5)
@@ -72,6 +74,8 @@ GEM
       claide (>= 1.0.2, < 2.0)
       colored2 (~> 3.1)
       nanaimo (~> 0.2.6)
+    xcpretty (0.3.0)
+      rouge (~> 2.0.7)
 
 PLATFORMS
   ruby
@@ -79,6 +83,7 @@ PLATFORMS
 DEPENDENCIES
   cocoapods (= 1.6.1)
   cocoapods-binary!
+  xcpretty
 
 BUNDLED WITH
    2.0.1
