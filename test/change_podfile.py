@@ -4,6 +4,7 @@ import sys
 def wrapper(content):
     return """
 platform :ios, '9.0'
+inhibit_all_warnings!
 use_frameworks!
 plugin "cocoapods-binary"
 
@@ -98,7 +99,7 @@ import Literal
 import Lottie
 class A {
     let a: CGRect = [1,2,3,4]
-    let a2 = LOTAnimationView.self
+    let a2 = AnimationView.self
     let d = UIView().mas_top
 }
 """) 
@@ -119,7 +120,7 @@ import Lottie
 import AFNetworking
 class A {
     let a: CGRect = [1,2,3,4]
-    let a2 = LOTAnimationView.self
+    let a2 = AnimationView.self
     let b = AFNetworkReachabilityManager()
     let d = UIView().mas_top
 }
