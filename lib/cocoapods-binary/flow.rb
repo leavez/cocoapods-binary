@@ -34,8 +34,8 @@ module Pod
             #
             # For simplicity, we have set 2 rules:
             #
-            # - Any part of the pod is set to binary, all the pod should be binary
-            # - Don't support for the different subspec lead to multiple pod targets case.
+            # 1. Any part of the pod is set to binary, all the pod should be binary
+            # 2. Don't support for the different subspec lead to multiple pod targets case.
             #
             #  For the first rule, for example, a subspec is binary while others are not, or in one target is
             #  binary while in another is not. All the source code in this pod should be binary)
@@ -44,6 +44,33 @@ module Pod
             #  contents.
             #
 
+            class << self
+
+                # @param [Array<TargetDefinitions>] target_definitions
+                # @return [Array<PodTarget>]
+                def FROM_target_definitions_TO_prebuild_pod_targets(target_definitions)
+
+                end
+
+                def FROM_prebuild_pod_targets_TO_framework_paths
+
+                end
+
+
+                # ---------------
+
+                def FROM_target_definitions_TO_prebuild_pod_targets
+
+                end
+
+                def FROM_prebuild_pod_targets_TO_pod_names
+
+                end
+
+                def FROM_pod_name_TO_spec
+
+                end
+            end
 
         end
     end
