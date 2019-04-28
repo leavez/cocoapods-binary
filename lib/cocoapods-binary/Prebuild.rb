@@ -67,10 +67,6 @@ module Pod
         # Build the needed framework files
         def prebuild_frameworks! 
 
-            # check
-            # give a early warning, instead of after compiling all the pods
-            Prebuild.check_one_pod_should_have_only_one_target(self.pod_targets)
-
             # build options
             sandbox_path = sandbox.root
             existed_framework_folder = sandbox.generate_framework_path

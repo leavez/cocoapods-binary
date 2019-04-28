@@ -146,7 +146,7 @@ module Pod
     #
     def self.build(sandbox_root_path, target, output_path, bitcode_enabled = false, custom_build_options=[], custom_build_options_simulator=[])
     
-      return unless not target == nil
+      return if target.nil?
     
       sandbox_root = Pathname(sandbox_root_path)
       sandbox = Pod::Sandbox.new(sandbox_root)
@@ -157,7 +157,7 @@ module Pod
       when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled, custom_build_options, custom_build_options_simulator)
       when :osx then xcodebuild(sandbox, target.label, 'macosx', nil, custom_build_options)
       # when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
-      when :watchos then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'watchos', 'watchsimulator', true, "i386")
+      when :watchos then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'watchos', 'watchsimulator', true, custom_build_options, custom_build_options_simulator)
       else raise "Unsupported platform for '#{target.name}': '#{target.platform.name}'" end
     
       raise Pod::Informative, 'The build directory was not found in the expected location.' unless build_dir.directory?
