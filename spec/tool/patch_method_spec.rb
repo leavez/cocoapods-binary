@@ -58,7 +58,7 @@ describe 'Patch method' do
         end
     end
 
-    it "the original method is can be accessor" do
+    it "the original method is can be accessed" do
         module SpecPatchMethod
             class D
                 def m(a)
