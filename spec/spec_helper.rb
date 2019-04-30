@@ -1,18 +1,15 @@
 require 'pathname'
-ROOT = Pathname.new(File.expand_path('../../', __FILE__))
-$:.unshift((ROOT + 'lib').to_s)
-$:.unshift((ROOT + 'spec').to_s)
-
-require 'bundler/setup'
-require 'bacon'
-require 'mocha-on-bacon'
-require 'pretty_bacon'
-require 'pathname'
 require 'cocoapods'
-
-Mocha::Configuration.prevent(:stubbing_non_existent_method)
-
 require 'cocoapods_plugin'
+
+RSpec.configure do |config|
+  config.expect_with :rspec do |c|
+    c.syntax = [:should, :expect]
+  end
+  config.mock_with :rspec do |mocks|
+    mocks.syntax = [:expect, :should]
+  end
+end
 
 #-----------------------------------------------------------------------------#
 
@@ -48,3 +45,53 @@ module Pod
 end
 
 #-----------------------------------------------------------------------------#
+module Pod
+
+    def self.build_installer(&podfile_text)
+      # Config.instance.silent = true
+      sandbox = Sandbox.new(Dir.tmpdir + "/binary_spec_#{Time.new.to_i}")
+      podfile = Podfile.new do
+        platform :ios, '12.0'
+        instance_eval &podfile_text
+      end
+      installer = Installer.new(sandbox, podfile)
+      installer.installation_options.integrate_targets = false
+      [installer, sandbox, podfile]
+    end
+
+  module SpecHelper
+
+    # mock the dependency of pods, as the dependency may changed along pod version
+    # @param [Hash<Symbol, Array<Arrary<String>>>] modification
+    def self.stub_pod_dependencies(context, modification)
+      raise if modification.nil?
+      if !@specification_hooked
+        Specification.class_eval do
+          alias_method :original_dependencies, :dependencies
+        end
+        @specification_hooked = true
+      end
+
+      context.allow_any_instance_of(Specification).to context.receive(:dependencies) { |s|
+        deps = modification[s.name.to_sym]
+        if deps
+          if deps == []
+            next []
+          end
+          if deps.first.kind_of? String
+            deps = [deps]
+          end
+          next deps.map{ |name_and_version| Dependency.new(name_and_version[0].to_s, name_and_version[1]) }
+        end
+        if modification[:keep_untouched]
+          next s.original_dependencies
+        else
+          []
+        end
+      }
+    end
+
+
+  end
+end
+

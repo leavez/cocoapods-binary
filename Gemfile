@@ -4,10 +4,11 @@ source 'https://rubygems.org'
 gemspec
 
 group :development do
-  gem 'cocoapods'
+  gem 'cocoapods', '1.6.1'
 
   gem 'mocha'
   gem 'bacon'
   gem 'mocha-on-bacon'
   gem 'prettybacon'
+
 end
