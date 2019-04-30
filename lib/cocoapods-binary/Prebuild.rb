@@ -2,11 +2,87 @@ require_relative 'rome/build_framework'
 require_relative 'helper/filter_for_prebuild_project'
 require_relative 'helper/passer'
 require_relative 'helper/target_checker'
+require_relative 'helper/context'
+require_relative 'extensions/prebuild_sandbox'
+require_relative 'extensions/installer_prebuild_targets'
+require_relative 'data_flow'
 
 
-# patch prebuild ability
 module Pod
+
+    class Resolver
+        patch_method_when(:resolve, Prebuild.prebuild_stage_condition) do |original_method, args|
+            original_result = original_method.(*args)
+            # keys: TargetDefinition (for aggregated targets)
+            podfile = self.podfile
+            filter_strategy = Prebuild::DataFlow.instance.pods_filter_strategy(podfile)
+
+            modified = original_result.each do |target_definition, dependencies|
+                assert_type target_definition, Podfile::TargetDefinition
+                dependencies.select do |resolver_spec|
+                    assert_type resolver_spec, Resolver::ResolverSpecification
+                    pod_name = resolver_spec.spec.root.name
+                    filter_strategy.call(pod_name)
+                end
+            end
+            modified
+        end
+
+
+        # resolve
+    end
+
     class Installer
+
+        # class Analyzer
+        #     patch_method_when(:analyze, Prebuild.prebuild_stage_condition) do |original_method, args|
+        #         original_result = original_method.(*args)
+        #         assert_type original_result, Analyzer::AnalysisResult
+        #         # @podfile_state = podfile_state
+        #         # @specs_by_target = specs_by_target
+        #         # @specs_by_source = specs_by_source
+        #         # @specifications = specifications
+        #         # @sandbox_state = sandbox_state
+        #         # @targets = targets
+        #         # @pod_targets = pod_targets
+        #         # @podfile_dependency_cache = podfile_dependency_cache
+        #         original_result
+        #     end
+        # end
+
+        # #### make the prebuild xcode project only contain prebuild pod ###
+        # patch_method_before_when(:install!, Pod::Prebuild.prebuild_stage_condition) do
+        #
+        #     podfile = self.podfile
+        #     filter_method = Prebuild::DataFlow.instance.podfile_dependency_filter_strategy(podfile)
+        #
+        #     # modify the podfile in-place
+        #     podfile.target_definition_list.each do |target_definition|
+        #         # pod dependency
+        #         values = target_definition.send(:get_hash_value, 'dependencies')
+        #         next if values.nil?
+        #         values = values.select do |v|
+        #             pod = nil
+        #             if v.kind_of?(Hash)
+        #                 pod = v.keys.first
+        #             elsif v.kind_of?(String)
+        #                 pod = v
+        #             else
+        #                 raise "unexpect type: #{v.inspect}"
+        #             end
+        #
+        #             root_pod = Specification.root_name(pod)
+        #             filter_method.call(root_pod)
+        #         end
+        #         # modify the data directly
+        #         target_definition.send(:set_hash_value, 'dependencies', values)
+        #
+        #         # podspec_dependencies
+        #         # TODO
+        #     end
+        # end
+
+
 
         
         private
@@ -98,7 +174,7 @@ module Pod
                 targets = root_names_to_update.map do |pod_name|
                     tars = Pod.fast_get_targets_for_pod_name(pod_name, self.pod_targets, cache)
                     if tars.nil? || tars.empty?
-                        raise "There's no target named (#{pod_name}) in Pod.xcodeproj.\n #{self.pod_targets.map(&:name)}" if t.nil?
+                        raise "There's no target named (#{pod_name}) in Pod.xcodeproj.\n #{self.pod_targets.map(&:name)}" if tars.nil?
                     end
                     tars
                 end.flatten
@@ -221,11 +297,6 @@ module Pod
         end
 
 
-        # patch!
-        patch_method_before :install! do |*args|
-            Prebuild.filter_podfile_content_for_prebuild_stage(podfile)
-        end
-        
         # patch the post install hook
         old_method2 = instance_method(:run_plugins_post_install_hooks)
         define_method(:run_plugins_post_install_hooks) do 

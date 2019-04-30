@@ -18,30 +18,7 @@ module Pod
                 @@enable_prebuild_patch = value
             end
 
-            # --- patch ---
-            old_method = instance_method(:pod)
 
-            # 包含所有 subspec！！！！！！
-            define_method(:pod) do |name, *args|
-                if !@@enable_prebuild_patch
-                    old_method.bind(self).(name, *args)
-                    next
-                end
-
-                # patched content
-                should_prebuild = Pod::Podfile::DSL.prebuild_all
-                local = false
-                
-                options = args.last
-                if options.is_a?(Hash) and options[Pod::Prebuild.keyword] != nil
-                    should_prebuild = options[Pod::Prebuild.keyword]
-                    local = (options[:path] != nil)
-                end
-                
-                if should_prebuild and (not local)
-                    old_method.bind(self).(name, *args)
-                end
-            end
          end
     end
     

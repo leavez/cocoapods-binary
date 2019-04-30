@@ -75,7 +75,10 @@ end
 
 Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_context|
 
+    require_relative 'data_flow'
+    require_relative 'helper/context'
     require_relative 'helper/feature_switches'
+
     if Pod.is_prebuild_stage
         next
     end
@@ -90,30 +93,32 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
             exit
         end
     end
-    
-    
+
+
     # -- step 1: prebuild framework ---
     # Execute a sperated pod install, to generate targets for building framework,
     # then compile them to framework files.
     require_relative 'extensions/prebuild_sandbox'
     require_relative 'Prebuild'
-    
+
     Pod::UI.puts "🚀  Prebuild frameworks"
-    
+
+
     # Fetch original installer (which is running this pre-install hook) options,
     # then pass them to our installer to perform update if needed
     # Looks like this is the most appropriate way to figure out that something should be updated
-    
+
     update = nil
     repo_update = nil
-    
+
     include ObjectSpace
     ObjectSpace.each_object(Pod::Installer) { |installer|
         update = installer.update
         repo_update = installer.repo_update
     }
-    
+
     # control features
+    Pod::Prebuild::Context.in_prebuild_stage = true
     Pod.is_prebuild_stage = true
     Pod::Podfile::DSL.enable_prebuild_patch true  # enable sikpping for prebuild targets
     Pod::Installer.force_disable_integration true # don't integrate targets
@@ -141,6 +146,7 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
     
     
     # reset the environment
+    Pod::Prebuild::Context.in_prebuild_stage = false
     Pod.is_prebuild_stage = false
     Pod::Installer.force_disable_integration false
     Pod::Podfile::DSL.enable_prebuild_patch false

@@ -1,7 +1,7 @@
 require_relative 'extensions/podfile_options'
 require_relative 'helper/feature_switches'
 require_relative 'extensions/prebuild_sandbox'
-require_relative 'extensions/prebuild_targets_helper'
+require_relative 'extensions/installer_prebuild_targets'
 require_relative 'helper/passer'
 require_relative 'helper/names'
 require_relative 'helper/target_checker'

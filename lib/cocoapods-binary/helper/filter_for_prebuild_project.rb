@@ -30,19 +30,38 @@ module Pod
         # @param [Podfile] podfile
         def self.filter_podfile_content_for_prebuild_stage(podfile)
 
-            # get all prebuild_names
-            # all_prebuild_names = []
-            # walk_the_tree(podfile.target_definitions) do |definition|
-            #     all_prebuild_names += definition.prebuild_framework_names(inherent_parent: false)
-            # end
-            # all_prebuild_names.uniq!
-            #
-            #
-            # p podfile.root_target_definitions[0]
-            # p podfile.root_target_definitions[0].children
-            # definitions = podfile.root_target_definitions
-            # p definitions[0].children[0].prebuild_framework_names
-            # p definitions[0].children[0].should_not_prebuild_framework_names
+            target_definitions = podfile.target_definition_list
+
+            all_explicit_pod_names = Set.new(target_definitions.map do |td|
+                td.prebuild_framework_pod_names(inherent_parent: false)
+            end.flatten)
+
+
+            target_definitions.each do |target_definition|
+                # pod dependency
+                values = target_definition.send(:get_hash_value, 'dependencies')
+                next if values.nil?
+                values = values.select do |v|
+                    pod = nil
+                    if v.kind_of?(Hash)
+                        pod = v.keys.first
+                    elsif v.kind_of?(String)
+                        pod = v
+                    else
+                        raise "unexpect type: #{v.inspect}"
+                    end
+
+                    root_pod = Specification.root_name(pod)
+                    all_explicit_pod_names.include?(root_pod)
+                end
+                # modify the data directly
+                target_definition.send(:set_hash_value, 'dependencies', values)
+
+
+                # podspec dependency
+                # podspec_dependencies
+            end
+
         end
 
 

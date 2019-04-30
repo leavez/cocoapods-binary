@@ -93,6 +93,26 @@ describe 'Patch method' do
         end
     end
 
+    it "can keep original default value" do
+        module SpecPatchMethod
+            class F
+                def m(a='D')
+                    "0#{a}"
+                end
+
+                patch_method('m') do |old_method, args|
+                    old_method.(*args) + "2"
+                end
+                patch_method('m') do |old_method, args|
+                    old_method.(*args) + "3"
+                end
+            end
+
+            F.new.m().should == '0D23'
+            F.new.m(1).should == '0123'
+        end
+    end
+
 end
 
 

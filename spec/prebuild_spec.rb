@@ -265,10 +265,6 @@ module Pod
             end
 
 
-            describe 'binary Pod filter out strategy' do
-
-            end
-
         end
 
 
