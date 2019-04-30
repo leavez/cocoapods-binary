@@ -1,11 +1,9 @@
-# encoding: UTF-8
 require_relative 'helper/podfile_options'
 require_relative 'tool/tool'
 
-module Pod    
+module Pod
     class Podfile
         module DSL
-            
             # Enable prebuiding for all pods
             # it has a lower priority to other binary settings
             def all_binary!
@@ -44,10 +42,10 @@ module Pod
             #   If is a Hash, it should be like this: { :device => "XXXXX", :simulator => "XXXXX" }
             #
             def set_custom_xcodebuild_options_for_prebuilt_frameworks(options)
-                if options.kind_of? Hash
-                    DSL.custom_build_options = [ options[:device] ] unless options[:device].nil?
-                    DSL.custom_build_options_simulator = [ options[:simulator] ] unless options[:simulator].nil?
-                elsif options.kind_of? String
+                if options.is_a? Hash
+                    DSL.custom_build_options = [options[:device]] if options[:device]
+                    DSL.custom_build_options_simulator = [options[:simulator]] if options[:simulator]
+                elsif options.is_a? String
                     DSL.custom_build_options = [options]
                     DSL.custom_build_options_simulator = [options]
                 else
@@ -55,7 +53,6 @@ module Pod
                 end
             end
 
-            private
             class_attr_accessor :prebuild_all
             prebuild_all = false
 
