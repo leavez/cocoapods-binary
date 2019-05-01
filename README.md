@@ -63,6 +63,8 @@ If your `Pods` folder is excluded from git, you may add `keep_source_code_for_pr
 
 If bitcode is needed, add a `enable_bitcode_for_prebuilt_frameworks!` before all targets in Podfile
 
+if you want to share prebuild frameworks for different projects or for CI builds, you may add `use_shared_cache!` in the head of Podfile to speed up pod install, as it will reuse frameworks from common cache folder(`~Library/Caches/CocoaPods/Prebuild` by default). 
+
 
 #### Known Issues
 
@@ -74,5 +76,3 @@ If bitcode is needed, add a `enable_bitcode_for_prebuilt_frameworks!` before all
 MIT
 
 Appreciate a 🌟 if you like it. 
-
-
