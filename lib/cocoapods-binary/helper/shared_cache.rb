@@ -54,7 +54,7 @@ module Pod
             # @return [Pathname]
             private
             class_attr_accessor :cache_root
-            self.cache_root = config.cache_root + 'Prebuild'
+            self.cache_root = config.cache_root + 'Prebuilt'
         end
     end
 end
