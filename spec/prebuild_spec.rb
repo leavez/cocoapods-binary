@@ -2,8 +2,8 @@ require 'spec_helper'
 require 'cocoapods-binary/Prebuild'
 
 
-
 module Pod
+
     describe 'Prebuild' do
         describe 'Install' do
 
@@ -14,6 +14,14 @@ module Pod
                     allow_any_instance_of(Installer).to receive(method) {  }
                 end
                 Prebuild::Context.stub(:in_prebuild_stage).and_return(true)
+
+                allow_any_instance_of(Installer).to receive(:regenerate_original_podfile) { |s|
+                    block = s.podfile.instance_variable_get(:@initial_block) # set in the #build_installer method
+                    assert block != nil
+                    podfile = Podfile.new(&block)
+                    podfile.instance_variable_set(:@initial_block, block)
+                    podfile
+                }
             end
 
             describe 'Pod binarify strategy' do
@@ -90,7 +98,7 @@ module Pod
                     context 'when explicitly set version for dependencies and make it non-binary' do
                         before(:each) do
                             SpecHelper.stub_pod_dependencies(self, {
-                                RxCocoa: ['RxSwift', '4.4.0'],
+                                RxCocoa: ['RxSwift', '>=4.4.0'],
                                 RxSwift: ['RxAtomic', '4.4.0'],
                             })
                             @installer, @sandbox, @podfile =  Pod.build_installer do
@@ -107,8 +115,8 @@ module Pod
                             @installer.prebuild_pod_targets.map(&:name).should match_array(['RxAtomic', 'RxCocoa'])
                         end
 
-                        #TODO
-                        xit "should have the right version for the explicit off" do
+                        # doc_anchor
+                        it "should have the right version for the explicit off" do
                             rxswift = @installer.pod_targets.find{ |t|t.pod_name == 'RxSwift'}
                             rxswift.should_not be_nil
                             spec = @installer.analysis_result.specifications.find{ |s|s.name == 'RxSwift'}
@@ -182,11 +190,10 @@ module Pod
                             @installer.install!
                         end
 
-                        #TODO !!!!
-                        xit "the binary target's name should equal to root pod name " do
+                        it "the binary target's name should equal to root pod name " do
                             @installer.prebuild_pod_targets.map(&:name).should match_array(['AFNetworking'])
                         end
-                        xit "should have just enough subspec content" do
+                        it "should have just enough subspec content" do
                             target = @installer.prebuild_pod_targets.first
                             target.specs.map(&:name).should match_array ['AFNetworking/Security']
                         end

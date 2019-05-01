@@ -130,7 +130,7 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
     prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sandbox)
     
     # get the podfile for prebuild
-    prebuild_podfile = Pod::Podfile.from_ruby(podfile.defined_in_file)
+    prebuild_podfile = Pod::Podfile.from_file(podfile.defined_in_file)
     
     # install
     lockfile = installer_context.lockfile

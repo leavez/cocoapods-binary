@@ -10,77 +10,109 @@ require_relative 'data_flow'
 
 module Pod
 
-    class Resolver
-        patch_method_when(:resolve, Prebuild.prebuild_stage_condition) do |original_method, args|
-            original_result = original_method.(*args)
-            # keys: TargetDefinition (for aggregated targets)
-            podfile = self.podfile
-            filter_strategy = Prebuild::DataFlow.instance.pods_filter_strategy(podfile)
+    class Installer
 
-            modified = original_result.each do |target_definition, dependencies|
-                assert_type target_definition, Podfile::TargetDefinition
-                dependencies.select do |resolver_spec|
-                    assert_type resolver_spec, Resolver::ResolverSpecification
-                    pod_name = resolver_spec.spec.root.name
-                    filter_strategy.call(pod_name)
+        ### make the prebuild xcode project only contain prebuild pod ###
+        patch_method_before_when(:install!, Pod::Prebuild.prebuild_stage_condition) do
+
+            podfile = self.podfile
+            # save for later use if needed
+            @dependencies_of_original_podfile = podfile.dependencies # Array<Dependency>
+
+            filter_method = Prebuild::DataFlow.instance.pods_filter_strategy(podfile)
+
+            # modify the podfile in-place
+            podfile.target_definition_list.each do |target_definition|
+                # pod dependency
+                values = target_definition.send(:get_hash_value, 'dependencies')
+                next if values.nil?
+                values = values.select do |v|
+                    pod = nil
+                    if v.kind_of?(Hash)
+                        pod = v.keys.first
+                    elsif v.kind_of?(String)
+                        pod = v
+                    else
+                        raise "unexpect type: #{v.inspect}"
+                    end
+
+                    root_pod = Specification.root_name(pod)
+                    filter_method.call(root_pod)
                 end
+                # modify the data directly
+                target_definition.send(:set_hash_value, 'dependencies', values)
+
+                # podspec_dependencies
+                # TODO
             end
-            modified
         end
 
 
-        # resolve
-    end
 
-    class Installer
+        ### SPECIAL HANDLE: redo install when missing dependency requirements ###
+        #
+        # There's a case where we can ignore the
+        # @see prebuild_spec.rb: search for 'doc_anchor'
 
-        # class Analyzer
-        #     patch_method_when(:analyze, Prebuild.prebuild_stage_condition) do |original_method, args|
-        #         original_result = original_method.(*args)
-        #         assert_type original_result, Analyzer::AnalysisResult
-        #         # @podfile_state = podfile_state
-        #         # @specs_by_target = specs_by_target
-        #         # @specs_by_source = specs_by_source
-        #         # @specifications = specifications
-        #         # @sandbox_state = sandbox_state
-        #         # @targets = targets
-        #         # @pod_targets = pod_targets
-        #         # @podfile_dependency_cache = podfile_dependency_cache
-        #         original_result
-        #     end
-        # end
+        # private attr_accessor :dependencies_of_original_podfile
 
-        # #### make the prebuild xcode project only contain prebuild pod ###
-        # patch_method_before_when(:install!, Pod::Prebuild.prebuild_stage_condition) do
-        #
-        #     podfile = self.podfile
-        #     filter_method = Prebuild::DataFlow.instance.podfile_dependency_filter_strategy(podfile)
-        #
-        #     # modify the podfile in-place
-        #     podfile.target_definition_list.each do |target_definition|
-        #         # pod dependency
-        #         values = target_definition.send(:get_hash_value, 'dependencies')
-        #         next if values.nil?
-        #         values = values.select do |v|
-        #             pod = nil
-        #             if v.kind_of?(Hash)
-        #                 pod = v.keys.first
-        #             elsif v.kind_of?(String)
-        #                 pod = v
-        #             else
-        #                 raise "unexpect type: #{v.inspect}"
-        #             end
-        #
-        #             root_pod = Specification.root_name(pod)
-        #             filter_method.call(root_pod)
-        #         end
-        #         # modify the data directly
-        #         target_definition.send(:set_hash_value, 'dependencies', values)
-        #
-        #         # podspec_dependencies
-        #         # TODO
-        #     end
-        # end
+        private def regenerate_original_podfile
+            assert @podfile.defined_in_file != nil
+            Podfile.from_file(@podfile.defined_in_file)
+        end
+
+        # only be true when prebuild stage AND config is on
+        retry_in_prebuild_condition = Proc.new{ Prebuild.prebuild_stage_condition.call } #TODO config
+
+
+        class PrebuildMissingRequirementError < StandardError
+            attr_accessor :missing_pod_names
+        end
+
+        patch_method_after_when(:resolve_dependencies, retry_in_prebuild_condition) do |*args|
+
+            assert @dependencies_of_original_podfile != nil
+            explicity_dependecies_pod_names = @dependencies_of_original_podfile.map(&:root_name)
+            filter_method = Prebuild::DataFlow.instance.pods_filter_strategy(podfile)
+            ignored_pod_names = Set.new explicity_dependecies_pod_names.reject(&filter_method)
+
+            real_generated_pod_names = Set.new self.pod_targets.map(&:pod_name).uniq
+
+            missing_requirements = ignored_pod_names.intersection(real_generated_pod_names)
+
+            # use raise to break the normal program flow
+            if !missing_requirements.empty?
+                e = PrebuildMissingRequirementError.new
+                e.missing_pod_names = missing_requirements.to_a
+                raise e
+            end
+        end
+
+
+        patch_method_when(:install!, retry_in_prebuild_condition) do |original, args|
+            begin
+                last_missing_pod_names, retry_count = @retry_args
+                @retry_args = nil # clean
+                # call original
+                original.(*args)
+
+            rescue PrebuildMissingRequirementError => e
+                retry_count ||= 0
+                last_missing_pod_names ||= []
+                all_missing_names = e.missing_pod_names + last_missing_pod_names
+
+                Prebuild::DataFlow.instance.supply_missing_names(all_missing_names)
+                podfile = self.regenerate_original_podfile
+                installer = Pod::Installer.new(@sandbox, podfile, @lockfile)
+                installer.installation_options = self.installation_options
+                # install! method cannot pass parameters, so we just pass it by instance variable.
+                installer.instance_variable_set(:@retry_args, [all_missing_names, retry_count + 1])
+                installer.install!
+            end
+        end
+
+
+
 
 
 

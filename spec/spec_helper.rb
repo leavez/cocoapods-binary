@@ -50,9 +50,13 @@ module Pod
     def self.build_installer(&podfile_text)
       # Config.instance.silent = true
       sandbox = Sandbox.new(Dir.tmpdir + "/binary_spec_#{Time.new.to_i}")
-      podfile = Podfile.new do
+      block = Proc.new do
         platform :ios, '12.0'
         instance_eval &podfile_text
+      end
+      podfile = Podfile.new &block
+      podfile.instance_eval do
+          @initial_block =  block
       end
       installer = Installer.new(sandbox, podfile)
       installer.installation_options.integrate_targets = false

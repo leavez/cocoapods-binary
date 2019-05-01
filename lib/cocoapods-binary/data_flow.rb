@@ -70,7 +70,7 @@ module Pod
                     td.prebuild_framework_pod_names(inherent_parent: false)
                 end.flatten
 
-                all_explicit_pod_names = Set.new(all_explicit_pod_names)
+                all_explicit_pod_names = Set.new(all_explicit_pod_names + (@missing_names||[]) )
 
                 # # get all dependencies
                 # # keep in the podfile
@@ -83,6 +83,7 @@ module Pod
                 end
 
             end
+
 
             # Get the prebuild targets, which will be transformed to binary framework finally.
             # (It doesn't means the target will actually perform a build action, as there may be a cache.)
@@ -114,6 +115,22 @@ module Pod
 
 
             ################ 2 generating project and build  ###################
+
+            def check_
+                assert @dependencies_of_original_podfile != nil
+                explicity_dependecies_pod_names = @dependencies_of_original_podfile.map(&:root_name)
+                filter_method = Prebuild::DataFlow.instance.pods_filter_strategy(podfile)
+                ignored_pod_names = Set.new explicity_dependecies_pod_names.reject(&filter_method)
+
+                real_generated_pod_names = Set.new self.pod_targets.map(&:pod_name).uniq
+
+                missing_requirements = ignored_pod_names.intersection(real_generated_pod_names)
+                missing_requirements.to_a
+            end
+
+            def supply_missing_names(pod_names)
+                @missing_names = pod_names
+            end
 
             # saved all the prebuilt pod names here
             # @return [Array<String>]
