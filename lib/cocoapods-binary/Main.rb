@@ -24,6 +24,11 @@ module Pod
                 DSL.dont_remove_source_code = true
             end
 
+            # Enable shared cache of prebuild frameworks
+            def use_shared_cache!
+                DSL.shared_cache_enabled = true
+            end
+
             # Add custom xcodebuild option to the prebuilding action
             #
             # You may use this for your special demands. For example: the default archs in dSYMs 
@@ -64,6 +69,9 @@ module Pod
 
             class_attr_accessor :dont_remove_source_code
             dont_remove_source_code = false
+
+            class_attr_accessor :shared_cache_enabled
+            shared_cache_enabled = false
 
             class_attr_accessor :custom_build_options
             class_attr_accessor :custom_build_options_simulator
