@@ -1,3 +1,4 @@
+require 'digest'
 require_relative '../tool/tool'
 
 module Pod
@@ -9,20 +10,20 @@ module Pod
             # `false` otherwise
             #
             # @return [Boolean]
-            def self.has?(target)
+            def self.has?(target, options)
                 if Podfile::DSL.shared_cache_enabled
-                    framework_cache_path_for(target).exist?
+                    framework_cache_path_for(target, options).exist?
                 else
                     false
                 end
             end
 
             # Copies input_path to target's cache
-            def self.cache(target, input_path)
+            def self.cache(target, input_path, options)
                 if not Podfile::DSL.shared_cache_enabled
                     return
                 end
-                cache_path = framework_cache_path_for(target)
+                cache_path = framework_cache_path_for(target, options)
                 cache_path.mkpath unless cache_path.exist?
                 FileUtils.cp_r "#{input_path}/.", cache_path
             end
@@ -30,10 +31,11 @@ module Pod
             # Path of the target's cache
             #
             # @return [Pathname]
-            def self.framework_cache_path_for(target)
+            def self.framework_cache_path_for(target, options)
                 framework_cache_path = cache_root + xcode_version
                 framework_cache_path = framework_cache_path + target.name
                 framework_cache_path = framework_cache_path + target.version
+                framework_cache_path = framework_cache_path + Digest::MD5.hexdigest(options.to_s).to_s
             end
 
             # Current xcode version.
