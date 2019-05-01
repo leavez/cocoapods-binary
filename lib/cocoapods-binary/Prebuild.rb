@@ -123,7 +123,15 @@ module Pod
 
                 output_path = sandbox.framework_folder_path_for_target_name(target.name)
                 output_path.mkpath unless output_path.exist?
-                Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled,  Podfile::DSL.custom_build_options,  Podfile::DSL.custom_build_options_simulator)
+
+                if Prebuild::SharedCache.has?(target)
+                    framework_cache_path = Prebuild::SharedCache.framework_cache_path_for(target)
+                    UI.puts "Using #{target.label} from cache"
+                    FileUtils.cp_r "#{framework_cache_path}/.", output_path
+                else
+                    Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled,  Podfile::DSL.custom_build_options,  Podfile::DSL.custom_build_options_simulator)
+                    Prebuild::SharedCache.cache(target, output_path)
+                end
 
                 # save the resource paths for later installing
                 if target.static_framework? and !target.resource_paths.empty?
