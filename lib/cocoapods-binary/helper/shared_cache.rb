@@ -35,7 +35,8 @@ module Pod
                 framework_cache_path = cache_root + xcode_version
                 framework_cache_path = framework_cache_path + target.name
                 framework_cache_path = framework_cache_path + target.version
-                framework_cache_path = framework_cache_path + Digest::MD5.hexdigest(options.to_s).to_s
+                options_with_platform = options + [target.platform.name]
+                framework_cache_path = framework_cache_path + Digest::MD5.hexdigest(options_with_platform.to_s).to_s
             end
 
             # Current xcode version.
