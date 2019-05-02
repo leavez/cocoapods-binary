@@ -51,25 +51,23 @@ module Pod
 
         ### SPECIAL HANDLE: redo install when missing dependency requirements ###
         #
-        # There's a case where we can ignore the
+        # There's a flow in the current prebuild pod project generating design. It
+        # just ignore the pod defined in the podfile if it's binary flag is false.
+        # For most cases, it works fine. But when a pod is off while it's depended
+        # by another binary pod, it will lose the info specified in podfile.
+        #
         # @see prebuild_spec.rb: search for 'doc_anchor'
-
-        # private attr_accessor :dependencies_of_original_podfile
-
-        private def regenerate_original_podfile
-            assert @podfile.defined_in_file != nil
-            Podfile.from_file(@podfile.defined_in_file)
-        end
-
-        # only be true when prebuild stage AND config is on
-        retry_in_prebuild_condition = Proc.new{ Prebuild.prebuild_stage_condition.call } #TODO config
+        #
+        # To solve this, here's a retry mechanism. If we check out some pods are in
+        # this case, we stop the current installing and do installing again, while,
+        # for the second time, preventing the missing pods from filtering out.
 
 
-        class PrebuildMissingRequirementError < StandardError
-            attr_accessor :missing_pod_names
-        end
+        # Only be true when in prebuild stage AND config is on
+        on_prebuild_stage_and_config_on = Proc.new{ Prebuild.prebuild_stage_condition.call } #TODO config
 
-        patch_method_after_when(:resolve_dependencies, retry_in_prebuild_condition) do |*args|
+        # Check if have missing dependencies, and trigger a retry if needed.
+        patch_method_after_when(:resolve_dependencies, on_prebuild_stage_and_config_on) do |*args|
 
             assert @dependencies_of_original_podfile != nil
             explicity_dependecies_pod_names = @dependencies_of_original_podfile.map(&:root_name)
@@ -89,7 +87,8 @@ module Pod
         end
 
 
-        patch_method_when(:install!, retry_in_prebuild_condition) do |original, args|
+        # Implement the retry mechanism
+        patch_method_when(:install!, on_prebuild_stage_and_config_on) do |original, args|
             begin
                 last_missing_pod_names, retry_count = @retry_args
                 @retry_args = nil # clean
@@ -111,12 +110,24 @@ module Pod
             end
         end
 
+        private def regenerate_original_podfile
+            assert @podfile.defined_in_file != nil
+            Podfile.from_file(@podfile.defined_in_file)
+        end
+
+
+
+        class PrebuildMissingRequirementError < StandardError
+            attr_accessor :missing_pod_names
+        end
+
+        # private attr_accessor :dependencies_of_original_podfile
 
 
 
 
 
-        
+
         private
 
         def local_manifest 
