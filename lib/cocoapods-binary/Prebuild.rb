@@ -13,7 +13,7 @@ module Pod
     class Installer
 
         ### make the prebuild xcode project only contain prebuild pod ###
-        patch_method_before_when(:install!, Pod::Prebuild.prebuild_stage_condition) do
+        do_before_method(:install!, only_when: Pod::Prebuild.prebuild_stage_condition) do
 
             podfile = self.podfile
             # save for later use if needed
@@ -67,7 +67,7 @@ module Pod
         on_prebuild_stage_and_config_on = Proc.new{ Prebuild.prebuild_stage_condition.call } #TODO config
 
         # Check if have missing dependencies, and trigger a retry if needed.
-        patch_method_after_when(:resolve_dependencies, on_prebuild_stage_and_config_on) do |*args|
+        do_after_method(:resolve_dependencies, only_when: on_prebuild_stage_and_config_on) do |*args|
 
             assert @dependencies_of_original_podfile != nil
             explicity_dependecies_pod_names = @dependencies_of_original_podfile.map(&:root_name)
@@ -88,7 +88,7 @@ module Pod
 
 
         # Implement the retry mechanism
-        patch_method_when(:install!, on_prebuild_stage_and_config_on) do |original, args|
+        modify_method(:install!, only_when: on_prebuild_stage_and_config_on) do |original, args|
             begin
                 last_missing_pod_names, retry_count = @retry_args
                 @retry_args = nil # clean

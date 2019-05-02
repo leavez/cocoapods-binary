@@ -1,12 +1,14 @@
 require_relative 'patch_method'
 require_relative 'assert'
 
+
 # Only execute the patched content when condition is true,
 # otherwise execute the original method.
 #
-# @param [Proc return bool] condition
+# @param [Proc return bool] only_when: the condition
 # @see patch_method
-def patch_method_when(method_name, condition, &content)
+def modify_method(method_name, only_when:, &content)
+    condition = only_when
     assert_type condition, Proc
     patch_method(method_name) do |old_method, args|
         if condition.call
@@ -18,7 +20,8 @@ def patch_method_when(method_name, condition, &content)
 end
 
 # @see patch_method_after
-def patch_method_after_when(method_name, condition, &content)
+def do_after_method(method_name, only_when:, &content)
+    condition = only_when
     assert_type condition, Proc
     patch_method(method_name) do |old_method, args|
         if condition.call
@@ -32,7 +35,8 @@ def patch_method_after_when(method_name, condition, &content)
 end
 
 # @see patch_method_before
-def patch_method_before_when(method_name, condition, &content)
+def do_before_method(method_name, only_when:, &content)
+    condition = only_when
     assert_type condition, Proc
     patch_method(method_name) do |old_method, args|
         if condition.call

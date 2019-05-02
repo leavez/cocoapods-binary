@@ -10,7 +10,7 @@ describe 'Patch method when' do
                     "1"
                 end
 
-                patch_method_when('m', Proc.new{ true }) do |old_method, args|
+                modify_method('m', only_when: Proc.new{ true }) do |old_method, args|
                     "2"
                 end
             end
@@ -32,7 +32,7 @@ describe 'Patch method when' do
                     "1"
                 end
 
-                patch_method_when('m', Proc.new{ Switch.on }) do |old_method, args|
+                modify_method('m', only_when: Proc.new{ Switch.on }) do |old_method, args|
                     "2"
                 end
             end
@@ -54,7 +54,7 @@ describe 'Patch method when' do
                     "1#{a}#{b}"
                 end
 
-                patch_method_when('m', Proc.new{ true }) do |old_method, args|
+                modify_method('m', only_when: Proc.new{ true }) do |old_method, args|
                     "2#{args[0]}#{args[1]}"
                 end
             end
@@ -74,7 +74,7 @@ describe 'Patch method when' do
                     self.class.name
                 end
 
-                patch_method_when('m', Proc.new{ true }) do |old_method, args|
+                modify_method('m', only_when: Proc.new{ true }) do |old_method, args|
                     who_am_i
                 end
             end
@@ -90,7 +90,7 @@ describe 'Patch method when' do
                     "1#{a}"
                 end
 
-                patch_method_when('m', Proc.new{ true }) do |old_method, args|
+                modify_method('m', only_when: Proc.new{ true }) do |old_method, args|
                     old_method.(*args)
                 end
             end
