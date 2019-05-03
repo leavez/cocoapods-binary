@@ -102,8 +102,13 @@ module Pod
                     tars
                 end.flatten
 
-                # add the dendencies
+                # add the dependencies
                 dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
+                # filter already built dependencies
+                dependency_targets = dependency_targets.reject { |t|
+                    local_manifest.version(t.name).to_s.eql? t.version.to_s
+                }
+
                 targets = (targets + dependency_targets).uniq
             else
                 targets = self.pod_targets
