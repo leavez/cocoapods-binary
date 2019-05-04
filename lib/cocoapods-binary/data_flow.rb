@@ -54,34 +54,22 @@ module Pod
 
             ################ 1 filter the podfile for prebuild  ################
 
-            # Filter the dependencies pod in podfile, only keep the prebuilt.
-            # This method return a Proc, which can be use to modify the podfile
+            # Filter the dependencies pod in podfile, only keep the prebuild ones.
+            # This method return a Proc, which can be use to modify the podfile.
+            #
+            # We do use this filter method, rather than just hack the pod function,
+            # because the latter can not handle subspec of different binary state.
             #
             # @param [Podfile] podfile
             # @return [Proc(String(pod_name) -> Bool)]
             def pods_filter_strategy(podfile)
 
-                # We do use this filter method, rather than just hack the pod function,
-                # because the latter can not handle subspec of different binary state.
+                should_include = podfile.explicitly_prebuild_pod_names
+                should_include += self.missing_names unless self.missing_names.nil?
 
-                target_definitions = podfile.target_definition_list
-
-                all_explicit_pod_names = target_definitions.map do |td|
-                    td.prebuild_framework_pod_names(inherent_parent: false)
-                end.flatten
-
-                all_explicit_pod_names = Set.new(all_explicit_pod_names + (@missing_names||[]) )
-
-                # # get all dependencies
-                # # keep in the podfile
-                # dependency_pod_names = target_definitions.map do |td|
-                #     td.prebuild_framework_pod_names(inherent_parent: false)
-                # end.flatten
-
-                return Proc.new do |pod_name|
-                    all_explicit_pod_names.include? pod_name
+                Proc.new do |pod_name|
+                    should_include.include? pod_name
                 end
-
             end
 
 
@@ -96,41 +84,39 @@ module Pod
             # @return [Array<PodTarget>]
             def get_prebuild_targets(podfile, pod_targets_in_prebuild_project)
 
-                target_definitions = podfile.target_definition_list
+                should_exclude = podfile.explicitly_not_prebuild_pod_names
+                # There may be different settings for different targets, so we just let the true be the first priority.
+                should_exclude -= podfile.explicitly_prebuild_pod_names
 
-                all_explicit_pod_names = Set.new(target_definitions.map do |td|
-                    td.prebuild_framework_pod_names(inherent_parent: false)
-                end.flatten)
-
-                explicitly_disabled_pod_names = Set.new(target_definitions.map do |td|
-                    td.should_not_prebuild_framework_pod_names(inherent_parent: false)
-                end.flatten)
-
-                explicitly_disabled_pod_names -= all_explicit_pod_names
-
-                return pod_targets_in_prebuild_project.reject do |target|
-                    explicitly_disabled_pod_names.include?(target.pod_name) || target.specs.any?{|s| s.root.local?}
+                pod_targets_in_prebuild_project.reject do |target|
+                    should_exclude.include?(target.pod_name) || target.specs.any?{|s| s.root.local?}
                 end
             end
 
 
             ################ 2 generating project and build  ###################
 
-            def check_
-                assert @dependencies_of_original_podfile != nil
-                explicity_dependecies_pod_names = @dependencies_of_original_podfile.map(&:root_name)
-                filter_method = Prebuild::DataFlow.instance.pods_filter_strategy(podfile)
+            # @see 'SPECIAL HANDLE' in Prebuild.rb
+            # @param [Podfile] podfile
+            # @param [Array<Dependency>] original_dependencies
+            # @param [Array<PodTargets>] real_generated_targetse
+            def check_dependency_setting_missing(podfile, original_dependencies, real_generated_targetse)
+
+                explicity_dependecies_pod_names = original_dependencies.map(&:root_name)
+                filter_method = self.pods_filter_strategy(podfile)
                 ignored_pod_names = Set.new explicity_dependecies_pod_names.reject(&filter_method)
-
-                real_generated_pod_names = Set.new self.pod_targets.map(&:pod_name).uniq
-
+                real_generated_pod_names = Set.new(real_generated_targetse.map(&:pod_name))
                 missing_requirements = ignored_pod_names.intersection(real_generated_pod_names)
-                missing_requirements.to_a
+                missing_requirements
             end
+
+            # @return [Array<String>]
+            attr_accessor :missing_names
 
             def supply_missing_names(pod_names)
-                @missing_names = pod_names
+                self.missing_names = pod_names
             end
+
 
             # saved all the prebuilt pod names here
             # @return [Array<String>]

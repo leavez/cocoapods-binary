@@ -22,6 +22,9 @@ module Pod
                     podfile.instance_variable_set(:@initial_block, block)
                     podfile
                 }
+
+                # data_flow = Prebuild::DataFlow.clone.instance
+                # allow_any_instance_of(Prebuild::DataFlow).to receive(:instance) { data_flow }
             end
 
             describe 'Pod binarify strategy' do

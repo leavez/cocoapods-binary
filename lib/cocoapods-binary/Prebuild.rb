@@ -12,13 +12,12 @@ module Pod
 
     class Installer
 
-        ### make the prebuild xcode project only contain prebuild pod ###
+        ### Make the prebuild xcode project only contain prebuild pod
+        ###
+
         do_before_method(:install!, only_when: Pod::Prebuild.prebuild_stage_condition) do
 
             podfile = self.podfile
-            # save for later use if needed
-            @dependencies_of_original_podfile = podfile.dependencies # Array<Dependency>
-
             filter_method = Prebuild::DataFlow.instance.pods_filter_strategy(podfile)
 
             # modify the podfile in-place
@@ -49,6 +48,7 @@ module Pod
 
 
 
+
         ### SPECIAL HANDLE: redo install when missing dependency requirements ###
         #
         # There's a flow in the current prebuild pod project generating design. It
@@ -66,22 +66,21 @@ module Pod
         # Only be true when in prebuild stage AND config is on
         on_prebuild_stage_and_config_on = Proc.new{ Prebuild.prebuild_stage_condition.call } #TODO config
 
+        do_before_method(:install!, only_when: on_prebuild_stage_and_config_on) do
+            podfile.original_dependencies = podfile.dependencies  # save for later use
+        end
+
         # Check if have missing dependencies, and trigger a retry if needed.
         do_after_method(:resolve_dependencies, only_when: on_prebuild_stage_and_config_on) do |*args|
 
-            assert @dependencies_of_original_podfile != nil
-            explicity_dependecies_pod_names = @dependencies_of_original_podfile.map(&:root_name)
-            filter_method = Prebuild::DataFlow.instance.pods_filter_strategy(podfile)
-            ignored_pod_names = Set.new explicity_dependecies_pod_names.reject(&filter_method)
-
-            real_generated_pod_names = Set.new self.pod_targets.map(&:pod_name).uniq
-
-            missing_requirements = ignored_pod_names.intersection(real_generated_pod_names)
+            assert podfile.original_dependencies != nil, 'Did you forget to set the value?'
+            names_with_missing_requirements = Prebuild::DataFlow.instance.check_dependency_setting_missing(
+                self.podfile, self.podfile.original_dependencies, self.pod_targets)
 
             # use raise to break the normal program flow
-            if !missing_requirements.empty?
+            if !names_with_missing_requirements.empty?
                 e = PrebuildMissingRequirementError.new
-                e.missing_pod_names = missing_requirements.to_a
+                e.missing_pod_names = names_with_missing_requirements.to_a
                 raise e
             end
         end
@@ -89,9 +88,10 @@ module Pod
 
         # Implement the retry mechanism
         modify_method(:install!, only_when: on_prebuild_stage_and_config_on) do |original, args|
+            last_missing_pod_names, retry_count = @retry_args
+            @retry_args = nil # clean
+
             begin
-                last_missing_pod_names, retry_count = @retry_args
-                @retry_args = nil # clean
                 # call original
                 original.(*args)
 
@@ -99,6 +99,9 @@ module Pod
                 retry_count ||= 0
                 last_missing_pod_names ||= []
                 all_missing_names = e.missing_pod_names + last_missing_pod_names
+                if retry_count >= 10
+                    raise "Too many retry for prebuild."
+                end
 
                 Prebuild::DataFlow.instance.supply_missing_names(all_missing_names)
                 podfile = self.regenerate_original_podfile
@@ -115,18 +118,18 @@ module Pod
             Podfile.from_file(@podfile.defined_in_file)
         end
 
-
+        Podfile.class_eval do
+            attr_accessor :original_dependencies # copy of dependencies before modify podifle
+        end
 
         class PrebuildMissingRequirementError < StandardError
             attr_accessor :missing_pod_names
         end
 
-        # private attr_accessor :dependencies_of_original_podfile
 
 
-
-
-
+        ### Prebuild Install Cache
+        ###
 
         private
 

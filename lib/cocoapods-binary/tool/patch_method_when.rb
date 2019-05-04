@@ -2,7 +2,7 @@ require_relative 'patch_method'
 require_relative 'assert'
 
 
-# Only execute the patched content when condition is true,
+# Only execute the patched content when condition returns true,
 # otherwise execute the original method.
 #
 # @param [Proc return bool] only_when: the condition
