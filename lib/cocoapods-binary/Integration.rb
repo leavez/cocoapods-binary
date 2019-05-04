@@ -245,8 +245,6 @@ module Pod
             pod_installer = create_pod_installer(pod_name)
             # \copy from original
 
-            p self.prebuild_pod_names
-            exit
             if self.prebuild_pod_names.include? pod_name
                 pod_installer.install_for_prebuild!(self.sandbox)
             else

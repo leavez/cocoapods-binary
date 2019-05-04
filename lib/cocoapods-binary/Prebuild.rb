@@ -85,7 +85,6 @@ module Pod
             end
         end
 
-
         # Implement the retry mechanism
         modify_method(:install!, only_when: on_prebuild_stage_and_config_on) do |original, args|
             last_missing_pod_names, retry_count = @retry_args
