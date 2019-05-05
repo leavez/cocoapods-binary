@@ -8,21 +8,7 @@ module Pod
         describe 'Install' do
 
             before(:each) do
-                # allow(Pod).to receive(:is_prebuild_stage)
-                allow_any_instance_of(Installer).to receive(:prebuild_frameworks!) {   }
-                [:download_dependencies, :validate_targets, :generate_pods_project, :perform_post_install_actions].each do |method|
-                    allow_any_instance_of(Installer).to receive(method) {  }
-                end
-                Prebuild::Context.stub(:in_prebuild_stage).and_return(true)
-
-                allow_any_instance_of(Installer).to receive(:regenerate_original_podfile) { |s|
-                    block = s.podfile.instance_variable_get(:@initial_block) # set in the #build_installer method
-                    assert block != nil
-                    podfile = Podfile.new(&block)
-                    podfile.instance_variable_set(:@initial_block, block)
-                    podfile
-                }
-
+                SpecHelper.prebuild_installer_stubs(self)
                 # data_flow = Prebuild::DataFlow.clone.instance
                 # allow_any_instance_of(Prebuild::DataFlow).to receive(:instance) { data_flow }
             end
@@ -101,7 +87,7 @@ module Pod
                     context 'when explicitly set version for dependencies and make it non-binary' do
                         before(:each) do
                             SpecHelper.stub_pod_dependencies(self, {
-                                RxCocoa: ['RxSwift', '>=4.4.0'],
+                                RxCocoa: [['RxSwift', '>=4.4.0']],
                                 RxSwift: ['RxAtomic', '4.4.0'],
                             })
                             @installer, @sandbox, @podfile =  Pod.build_installer do
@@ -128,6 +114,38 @@ module Pod
 
                         it "should have all the dependencies to build in Pod project" do
                             @installer.pod_targets.map(&:name).should match_array(['RxAtomic', 'RxCocoa', 'RxSwift'])
+                        end
+                    end
+
+                    context 'when explicitly set config for dependencies and make it non-binary(subspec)' do
+                        before(:each) do
+                            SpecHelper.stub_pod_dependencies(self, {
+                                'SnapKit' => ['AFNetworking/Reachability', '>=3.1.0'],
+                                'AFNetworking/Reachability' => [],
+                            })
+                            @installer, @sandbox, @podfile =  Pod.build_installer do
+                                target 'A' do
+                                    pod "SnapKit", :binary => true
+                                    pod "AFNetworking/Reachability", '3.2.0', :binary => false
+                                end
+                            end
+                            @installer.install!
+                        end
+
+                        it "should exclude the explicit off" do
+                            @installer.prebuild_pod_targets.map(&:name).should match_array(['SnapKit'])
+                        end
+
+                        # doc_anchor
+                        it "should have the right version for the explicit off" do
+                            target = @installer.pod_targets.find{ |t|t.pod_name == 'AFNetworking'}
+                            target.should_not be_nil
+                            spec = @installer.analysis_result.specifications.find{ |s|s.name == 'AFNetworking/Reachability'}
+                            spec.version.to_s.should == '3.2.0'
+                        end
+
+                        it "should have all the dependencies to build in Pod project" do
+                            @installer.pod_targets.map(&:name).should match_array(['SnapKit', 'AFNetworking'])
                         end
                     end
                 end

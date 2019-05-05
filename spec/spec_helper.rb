@@ -63,7 +63,27 @@ module Pod
       [installer, sandbox, podfile]
     end
 
+
   module SpecHelper
+
+    # mock the methods for installer
+    def self.prebuild_installer_stubs(context)
+      context.instance_eval do
+          allow_any_instance_of(Installer).to receive(:prebuild_frameworks!) {   }
+          [:download_dependencies, :validate_targets, :generate_pods_project, :perform_post_install_actions].each do |method|
+            allow_any_instance_of(Installer).to receive(method) {  }
+          end
+          Prebuild::Context.stub(:in_prebuild_stage).and_return(true)
+
+          allow_any_instance_of(Installer).to receive(:regenerate_original_podfile) { |s|
+            block = s.podfile.instance_variable_get(:@initial_block) # set in the #build_installer method
+            assert block != nil
+            podfile = Podfile.new(&block)
+            podfile.instance_variable_set(:@initial_block, block)
+            podfile
+          }
+      end
+    end
 
     # mock the dependency of pods, as the dependency may changed along pod version
     # @param [Hash<Symbol, Array<Arrary<String>>>] modification
@@ -77,7 +97,7 @@ module Pod
       end
 
       context.allow_any_instance_of(Specification).to context.receive(:dependencies) { |s|
-        deps = modification[s.name.to_sym]
+        deps = modification[s.name.to_sym] || modification[s.name.to_s]
         if deps
           if deps == []
             next []

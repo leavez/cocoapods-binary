@@ -50,6 +50,7 @@ module Pod
 
 
         ### SPECIAL HANDLE: redo install when missing dependency requirements ###
+        ###
         #
         # There's a flow in the current prebuild pod project generating design. It
         # just ignore the pod defined in the podfile if it's binary flag is false.
@@ -103,9 +104,7 @@ module Pod
                 end
 
                 Prebuild::DataFlow.instance.supply_missing_names(all_missing_names)
-                podfile = self.regenerate_original_podfile
-                installer = Pod::Installer.new(@sandbox, podfile, @lockfile)
-                installer.installation_options = self.installation_options
+                installer = regenerate_installer
                 # install! method cannot pass parameters, so we just pass it by instance variable.
                 installer.instance_variable_set(:@retry_args, [all_missing_names, retry_count + 1])
                 installer.install!
@@ -117,8 +116,15 @@ module Pod
             Podfile.from_file(@podfile.defined_in_file)
         end
 
+        private def regenerate_installer
+            podfile = self.regenerate_original_podfile
+            installer = Pod::Installer.new(@sandbox, podfile, @lockfile)
+            installer.installation_options = self.installation_options
+            installer
+        end
+
         Podfile.class_eval do
-            attr_accessor :original_dependencies # copy of dependencies before modify podifle
+            attr_accessor :original_dependencies # copy of dependencies before modify podfile
         end
 
         class PrebuildMissingRequirementError < StandardError
