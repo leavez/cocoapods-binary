@@ -178,6 +178,7 @@ module Pod
                 # This is for target with only .a and .h files
                 if not target.should_build? 
                     Prebuild::Passer.target_names_to_skip_integration_framework << target.name
+                    target_folder.mkpath unless target_folder.exist?
                     FileUtils.cp_r(root_path, target_folder, :remove_destination => true)
                     next
                 end
