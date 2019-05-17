@@ -97,7 +97,7 @@ module Pod
                 targets = root_names_to_update.map do |pod_name|
                     tars = Pod.fast_get_targets_for_pod_name(pod_name, self.pod_targets, cache)
                     if tars.nil? || tars.empty?
-                        raise "There's no target named (#{pod_name}) in Pod.xcodeproj.\n #{self.pod_targets.map(&:name)}" if t.nil?
+                        raise "There's no target named (#{pod_name}) in Pods.xcodeproj.\n #{self.pod_targets.map(&:name)}" if t.nil?
                     end
                     tars
                 end.flatten
@@ -123,7 +123,14 @@ module Pod
 
                 output_path = sandbox.framework_folder_path_for_target_name(target.name)
                 output_path.mkpath unless output_path.exist?
-                Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled,  Podfile::DSL.custom_build_options,  Podfile::DSL.custom_build_options_simulator)
+
+                min_deployment_target = aggregate_targets
+                    .select { |t| t.pod_targets.include?(target) }
+                    .map(&:platform)
+                    .map(&:deployment_target)
+                    .max
+
+                Pod::Prebuild.build(sandbox_path, target, min_deployment_target, output_path, bitcode_enabled,  Podfile::DSL.custom_build_options,  Podfile::DSL.custom_build_options_simulator)
 
                 # save the resource paths for later installing
                 if target.static_framework? and !target.resource_paths.empty?

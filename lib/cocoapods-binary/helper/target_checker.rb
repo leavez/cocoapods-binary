@@ -14,7 +14,7 @@ module Pod
         raw_names = targets_have_different_platforms.map(&:name)
         message = "Oops, you came across a limitation of cocoapods-binary.
 
-The plugin requires that one pod should have ONLY ONE target in the 'Pod.xcodeproj'. There are mainly 2 situations \
+The plugin requires that one pod should have ONLY ONE target in the 'Pods.xcodeproj'. There are mainly 2 situations \
 causing this problem:
 
 1. One pod integrates in 2 or more different platforms' targets. e.g.
