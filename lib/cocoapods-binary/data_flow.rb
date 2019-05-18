@@ -120,16 +120,19 @@ module Pod
 
             # saved all the prebuilt pod names here
             # @return [Array<String>]
-            attr_accessor :prebuilt_pod_names
+            private attr_accessor :prebuilt_pod_names
 
             # saved all the prebuilt target names
             # @return [Array<String>]
-            attr_accessor :prebuild_target_names
+            private attr_accessor :prebuild_target_names
 
+
+            # Save the names for later use (integration step)
             # @param [Array<PodTarget>] pod_targets
             # @return [Void]
             def save_prebuilt_names(pod_targets)
-                prebuilt_pod_names = pod_targets.map(&pod_name).uniq
+                self.prebuilt_pod_names = pod_targets.map(&:pod_name).uniq
+                self.prebuild_target_names = pod_targets.map(&:name)
             end
 
 
