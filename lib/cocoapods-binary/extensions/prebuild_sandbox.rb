@@ -13,12 +13,14 @@ module Pod
             self.from_standard_sanbox_path(sandbox.root)
         end
 
+        # --
+
         def standard_sanbox_path
             self.root.parent
         end
         
         def generate_framework_path
-            self.root + "GeneratedFrameworks"
+            @generate_framework_path ||= (self.root + "GeneratedFrameworks")
         end
 
         # @param name [String] pass the target.name (may containing platform suffix)
