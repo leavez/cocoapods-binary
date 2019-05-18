@@ -15,33 +15,4 @@ target 'demo' do
 
   # # Firebase
   # pod 'Firebase/Core', :binary => true
-  # pod 'Firebase/Firestore'
-  # pod 'Firebase/Auth'
-  # pod 'CodableFirebase'
-end
-
- target 'demoTests' do
-
-  #  pod 'Firebase/Core'
-  #  pod 'Firebase/Firestore'
-  #  pod 'CodableFirebase'
- end
-
-# target 'AnimalHouseHttpContractTests' do
-#   pod 'RxSwift'
-#   pod 'RxCocoa'
-  
-#   pod 'RxBlocking'
-# end
-
-# target 'RoadTripTests' do
-#   pod 'RxSwift'
-#   pod 'RxCocoa'
-#   pod 'RxDataSources'
-  
-#   pod 'Firebase/Core'
-#   pod 'Firebase/Auth'
-  
-#   pod 'RxTest'
-#   pod 'RxBlocking'
-# end
+  # pod 'Firebase/Firestore' 

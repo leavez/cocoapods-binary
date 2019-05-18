@@ -139,9 +139,16 @@ module Pod
             ################ 3 output frameworks ##############################
 
             class TargetPersistenceInfo
+
+                class AdditionalInfo
+                    attr_accessor :target_name            # [String]
+                    attr_accessor :corresponding_pod_name # [String]
+                    attr_accessor :target_identifier      # TODO
+                end
+
                 # meta info
                 attr_accessor :target_name             # [String]
-                attr_accessor :additional_info         # [TargetAdditionalInfo]
+                attr_accessor :additional_info         # [AdditionalInfo]
 
                 # paths
                 attr_accessor :persistence_root_folder # [Pathname]
@@ -150,18 +157,26 @@ module Pod
                 attr_accessor :additional_info_path    # [Pathname]
             end
 
-            class TargetAdditionalInfo
-                attr_accessor :target_name            # [String]
-                attr_accessor :corresponding_pod_name # [String]
-                attr_accessor :target_identifier      # TODO
-            end
 
             # Generate the persistence meta info for a target, which will be
             # used in saving framework.
             #
             # @param [PodTarget] target
+            # @param [PrebuildSandbox] prebuild_sandbox
             # @return [TargetPersistenceInfo]
-            def persistence_info_for_target(target)
+            def persistence_info_for_target(target, prebuild_sandbox)
+                info = TargetPersistenceInfo.new
+                info.additional_info = TargetPersistenceInfo::AdditionalInfo.new.tap do |i|
+                    i.target_name = target.name
+                    i.corresponding_pod_name = target.pod_name
+                    # TODO
+                    # i.target_identifier
+                end
+
+                target_name = target.name
+                info.target_name = target_name
+                info.persistence_root_folder = prebuild_sandbox.generate_framework_path + target_name
+                info.framework_file_path =
 
             end
 
@@ -189,6 +204,7 @@ module Pod
             # @param [Array<Specification>] all_specs
             # @return [Array<SpecModification>]
             def get_spec_modification_infos(all_specs)
+
 
             end
 

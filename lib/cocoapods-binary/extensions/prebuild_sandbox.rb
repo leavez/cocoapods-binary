@@ -23,6 +23,18 @@ module Pod
             @generate_framework_path ||= (self.root + "GeneratedFrameworks")
         end
 
+
+        # ---
+
+        # # Generate the persistence path for target
+        # # @param [String] target_name
+        # # @return [Pathname]
+        # def persistence_path_for_target_named(target_name)
+        #     self.generate_framework_path + target_name
+        # end
+
+
+
         # @param name [String] pass the target.name (may containing platform suffix)
         # @return [Pathname] the folder containing the framework file.
         def framework_folder_path_for_target_name(name)

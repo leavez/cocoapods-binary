@@ -85,12 +85,14 @@ module Pod
       end
     end
 
+
     # mock the dependency of pods, as the dependency may changed along pod version
     # @param [Hash<Symbol, Array<Arrary<String>>>] modification
     def self.stub_pod_dependencies(context, modification)
       raise if modification.nil?
       if !@specification_hooked
         Specification.class_eval do
+          p "chenage!!!!"
           alias_method :original_dependencies, :dependencies
         end
         @specification_hooked = true
