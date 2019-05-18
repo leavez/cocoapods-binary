@@ -29,7 +29,7 @@ require_relative 'tool/tool'
 #
 # 1. Any part of the pod is set to binary, all the pod should be binary
 # 2. Dependencies of a binary is also binary be default, except disabled explicitly.
-# 3. Don't support for the different subspec lead to multiple pod targets case.
+# 3. Don't support for the different subspecs lead to multiple pod targets case.
 #
 #  For the first rule, for example, a subspec is binary while others are not, or in one target is
 #  binary while in another is not. All the source code in this pod should be binary)
@@ -99,13 +99,13 @@ module Pod
             # @see 'SPECIAL HANDLE' in Prebuild.rb
             # @param [Podfile] podfile
             # @param [Array<Dependency>] original_dependencies
-            # @param [Array<PodTargets>] real_generated_targetse
-            def check_dependency_setting_missing(podfile, original_dependencies, real_generated_targetse)
+            # @param [Array<PodTargets>] real_generated_targets
+            def check_dependency_setting_missing(podfile, original_dependencies, real_generated_targets)
 
                 explicity_dependecies_pod_names = original_dependencies.map(&:root_name)
                 filter_method = self.pods_filter_strategy(podfile)
                 ignored_pod_names = Set.new explicity_dependecies_pod_names.reject(&filter_method)
-                real_generated_pod_names = Set.new(real_generated_targetse.map(&:pod_name))
+                real_generated_pod_names = Set.new(real_generated_targets.map(&:pod_name))
                 missing_requirements = ignored_pod_names.intersection(real_generated_pod_names)
                 missing_requirements
             end
