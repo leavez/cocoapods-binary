@@ -13,25 +13,41 @@ module Pod
             #
             # @return [Boolean]
             def self.has?(target, options)
+                has_local_cache_for(target, options) || has_s3_cache_for(target, options)
+            end
+
+            # `true` if there is local cache for the target
+            # `false` otherwise
+            #
+            # @return [Boolean]
+            def self.has_local_cache_for?(target, options)
                 if Podfile::DSL.shared_cache_enabled
-                    path = framework_cache_path_for(target, options, true)
-                    result = path.exist?
-                    if not result and Podfile::DSL.shared_s3_cache_enabled
-                        s3_cache_path = framework_cache_path_for(target, options, false)
-                        s3_cache_path = Podfile::DSL.s3_options[:prefix] + s3_cache_path  unless Podfile::DSL.s3_options[:prefix].nil?
-                        s3 = Aws::S3::Resource.new(create_s3_options)
-                        if s3.bucket(Podfile::DSL.s3_options[:bucket]).object("#{s3_cache_path}").exists?
-                            Dir.mktmpdir {|dir|
-                                s3.bucket(Podfile::DSL.s3_options[:bucket]).object("#{s3_cache_path}").get(response_target: "#{dir}/framework.zip")
-                                unzip("#{dir}/framework.zip", path)
-                                return true
-                            }
-                        end
-                    end
-                    result
+                    path = local_framework_cache_path_for(target, options)
+                    path.exist?
                 else
                     false
                 end
+            end
+
+            # `true` if there is s3 cache for the target
+            # `false` otherwise
+            #
+            # @return [Boolean]
+            def has_s3_cache_for?(target, options)
+                result = false
+                if Podfile::DSL.shared_s3_cache_enabled
+                    s3_cache_path = s3_framework_cache_path_for(target, options)
+                    s3_cache_path = Podfile::DSL.s3_options[:prefix] + s3_cache_path  unless Podfile::DSL.s3_options[:prefix].nil?
+                    s3 = Aws::S3::Resource.new(create_s3_options)
+                    if s3.bucket(Podfile::DSL.s3_options[:bucket]).object("#{s3_cache_path}").exists?
+                        Dir.mktmpdir {|dir|
+                            s3.bucket(Podfile::DSL.s3_options[:bucket]).object("#{s3_cache_path}").get(response_target: "#{dir}/framework.zip")
+                            unzip("#{dir}/framework.zip", path)
+                            result = true
+                        }
+                    end
+                end
+                result
             end
 
             # @return [{}] AWS connection options
@@ -75,11 +91,11 @@ module Pod
                 if not Podfile::DSL.shared_cache_enabled
                     return
                 end
-                cache_path = framework_cache_path_for(target, options, true)
+                cache_path = local_framework_cache_path_for(target, options)
                 cache_path.mkpath unless cache_path.exist?
                 FileUtils.cp_r "#{input_path}/.", cache_path
                 if Podfile::DSL.shared_s3_cache_enabled
-                    s3_cache_path = framework_cache_path_for(target, options, false)
+                    s3_cache_path = s3_framework_cache_path_for(target, options)
                     s3 = Aws::S3::Resource.new(create_s3_options)
                     Dir.mktmpdir {|dir|
                         zip(cache_path, "#{dir}/framework.zip")
@@ -88,15 +104,22 @@ module Pod
                 end
             end
 
-            # Path of the target's cache
+            # Path of the target's local cache
             #
             # @return [Pathname]
-            def self.framework_cache_path_for(target, options)
-                framework_cache_path = Pathname.new('')
-                if include_cache_root
-                    framework_cache_path = cache_root
-                end
-                framework_cache_path = framework_cache_path + xcode_version
+            def self.local_framework_cache_path_for(target, options)
+                framework_cache_path = cache_root + xcode_version
+                framework_cache_path = framework_cache_path + target.name
+                framework_cache_path = framework_cache_path + target.version
+                options_with_platform = options + [target.platform.name]
+                framework_cache_path = framework_cache_path + Digest::MD5.hexdigest(options_with_platform.to_s).to_s
+            end
+
+            # Path of the target's s3 cache
+            #
+            # @return [Pathname]
+            def self.s3_framework_cache_path_for(target, options)
+                framework_cache_path = Pathname.new('') + xcode_version
                 framework_cache_path = framework_cache_path + target.name
                 framework_cache_path = framework_cache_path + target.version
                 options_with_platform = options + [target.platform.name]

@@ -130,7 +130,7 @@ module Pod
                 output_path.mkpath unless output_path.exist?
 
                 if Prebuild::SharedCache.has?(target, options)
-                    framework_cache_path = Prebuild::SharedCache.framework_cache_path_for(target, options)
+                    framework_cache_path = Prebuild::SharedCache.local_framework_cache_path_for(target, options)
                     UI.puts "Using #{target.label} from cache"
                     FileUtils.cp_r "#{framework_cache_path}/.", output_path
                 else
