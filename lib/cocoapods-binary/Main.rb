@@ -37,6 +37,20 @@ module Pod
                 DSL.shared_cache_enabled = true
             end
 
+            # Enable s3 shared cache, requires use_shared_cache!
+            # Frameworks also stored in s3 bucket
+            # Options hash depends on:
+            # - login(optional) : if not provided default aws creds strategy will be applied
+            # - password(optional) : if not provided default aws creds strategy will be applied
+            # - region(optional): if not provided default aws region strategy will be applied
+            # - endpoint(optional): if not provided default aws endpoint will be used, supported for custom s3 like implementation, like Ceph
+            # - bucket(required): s3 bucket name
+            # - prefix(optional): prefix for object key
+            def use_s3_cache(options)
+                DSL.shared_s3_cache_enabled = true
+                DSL.s3_options = options
+            end
+
             # Add custom xcodebuild option to the prebuilding action
             #
             # You may use this for your special demands. For example: the default archs in dSYMs 
@@ -80,6 +94,10 @@ module Pod
 
             class_attr_accessor :shared_cache_enabled
             shared_cache_enabled = false
+            class_attr_accessor :shared_s3_cache_enabled
+            shared_s3_cache_enabled = false
+            class_attr_accessor :s3_options
+            s3_options = {}
 
             class_attr_accessor :custom_build_options
             class_attr_accessor :custom_build_options_simulator
