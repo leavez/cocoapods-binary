@@ -42,6 +42,7 @@ def build_for_iosish_platform(sandbox,
   module_name = target.product_module_name
   device_framework_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{target_name}/#{module_name}.framework"
   simulator_framework_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{target_name}/#{module_name}.framework"
+  output_framework_path = "#{output_path}/#{module_name}.framework"
 
   device_binary = device_framework_path + "/#{module_name}"
   simulator_binary = simulator_framework_path + "/#{module_name}"
@@ -86,6 +87,7 @@ def build_for_iosish_platform(sandbox,
 
   # handle the dSYM files
   device_dsym = "#{device_framework_path}.dSYM"
+  device_dsym_output_path = "#{output_framework_path}.dSYM"
   if File.exist? device_dsym
     # lipo the simulator dsym
     simulator_dsym = "#{simulator_framework_path}.dSYM"
@@ -96,12 +98,14 @@ def build_for_iosish_platform(sandbox,
       FileUtils.mv tmp_lipoed_binary_path, "#{device_framework_path}.dSYM/Contents/Resources/DWARF/#{module_name}", :force => true
     end
     # move
-    FileUtils.mv device_dsym, output_path, :force => true
+    FileUtils.rm_r device_dsym_output_path if Dir.exist? device_dsym_output_path
+    File.rename device_dsym, device_dsym_output_path
   end
 
   # output
   output_path.mkpath unless output_path.exist?
-  FileUtils.mv device_framework_path, output_path, :force => true
+  FileUtils.rm_r output_framework_path if Dir.exist? output_framework_path
+  File.rename device_framework_path, output_framework_path
 
 end
 
