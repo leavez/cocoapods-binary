@@ -7,7 +7,7 @@ build() {
 		
 rm -rf Pods
 
-cases=("initial" "addSwiftPod" "revertToSourceCode" "addDifferentNamePod" "addSubPod" "deleteAPod" "addVendoredLibPod" "universalFlag" "multiplePlatforms" "multiplePlatformsWithALLFlag")
+cases=("initial" "addSwiftPod" "revertToSourceCode" "addDifferentNamePod" "addSubPod" "deleteAPod" "addVendoredLibPod" "universalFlag" "multiplePlatforms" "multiplePlatformsWithALLFlag" "oldPodVersion" "upgradePodVersion")
 for action in ${cases[@]}; do
     python change_podfile.py ${action}
     bundle exec pod install
