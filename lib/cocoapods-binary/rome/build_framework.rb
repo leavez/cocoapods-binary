@@ -1,5 +1,6 @@
 require 'fourflusher'
 require 'xcpretty'
+require 'shellwords'
 
 CONFIGURATION = "Release"
 PLATFORMS = { 'iphonesimulator' => 'iOS',
@@ -106,7 +107,7 @@ def build_for_iosish_platform(sandbox,
 end
 
 def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, other_options=[])
-  args = %W(-project #{sandbox.project_path.realdirpath} -scheme #{target} -configuration #{CONFIGURATION} -sdk #{sdk} )
+  args = %W(-project #{sandbox.project_path.realdirpath.shellescape} -scheme #{target} -configuration #{CONFIGURATION} -sdk #{sdk} )
   platform = PLATFORMS[sdk]
   args += Fourflusher::SimControl.new.destination(:oldest, platform, deployment_target) unless platform.nil?
   args += other_options
