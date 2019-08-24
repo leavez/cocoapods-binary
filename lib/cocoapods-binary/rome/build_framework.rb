@@ -51,7 +51,7 @@ def build_for_iosish_platform(sandbox,
   # the device_lib path is the final output file path
   # combine the binaries
   tmp_lipoed_binary_path = "#{build_dir}/#{target_name}"
-  lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_binary} #{simulator_binary}`
+  lipo_log = `lipo -create -output #{tmp_lipoed_binary_path.shellescape} #{device_binary.shellescape} #{simulator_binary.shellescape}`
   puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
   FileUtils.mv tmp_lipoed_binary_path, device_binary, :force => true
   
@@ -92,7 +92,7 @@ def build_for_iosish_platform(sandbox,
     simulator_dsym = "#{simulator_framework_path}.dSYM"
     if File.exist? simulator_dsym
       tmp_lipoed_binary_path = "#{output_path}/#{module_name}.draft"
-      lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_dsym}/Contents/Resources/DWARF/#{module_name} #{simulator_dsym}/Contents/Resources/DWARF/#{module_name}`
+      lipo_log = `lipo -create -output #{tmp_lipoed_binary_path.shellescape} #{device_dsym.shellescape}/Contents/Resources/DWARF/#{module_name.shellescape} #{simulator_dsym.shellescape}/Contents/Resources/DWARF/#{module_name.shellescape}`
       puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
       FileUtils.mv tmp_lipoed_binary_path, "#{device_framework_path}.dSYM/Contents/Resources/DWARF/#{module_name}", :force => true
     end
