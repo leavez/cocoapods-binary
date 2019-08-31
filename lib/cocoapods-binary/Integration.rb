@@ -269,11 +269,11 @@ module Pod
                     # If the path isn't an absolute path, we add a realtive prefix.
                     old_read_link=`which readlink`
                     readlink () {
-                        path=`$old_read_link $1`;
+                        path=`$old_read_link "$1"`;
                         if [ $(echo "$path" | cut -c 1-1) = '/' ]; then
                             echo $path;
                         else
-                            echo "`dirname $1`/$path";
+                            echo "`dirname "$1"`/$path";
                         fi
                     }
                     # --- 
