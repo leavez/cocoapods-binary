@@ -274,6 +274,134 @@ class A {
 )
 
 
+def originalPodfileAndLockfileVersion():
+    return (wrapper(
+"""
+pod "Result", "= 3.2.2", :binary => true
+""") ,
+"""
+import Result
+class A {
+    // Works on 3.x but not 4.x
+    var err: ErrorProtocolConvertible?
+}
+""", "",
+"""
+PODS:
+  - Result (3.2.2)
+
+DEPENDENCIES:
+  - Result (= 3.2.2)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - Result
+
+SPEC CHECKSUMS:
+  Result: 4edd39003fdccf281d418ee1b006571f70123250
+
+PODFILE CHECKSUM: 578d759c1f6329e159731bc0a232fb9051977130
+
+COCOAPODS: 1.6.1
+"""
+)
+
+def upgradePodfileAndLockfileVersion():
+    return (wrapper(
+"""
+pod "Result", "= 4.0.0", :binary => true
+""") ,
+"""
+import Result
+class A {
+    // Works on 4.x but not 3.x
+    var err: ErrorConvertible?
+}
+""", "",
+"""
+PODS:
+  - Result (4.0.0)
+
+DEPENDENCIES:
+  - Result (= 4.0.0)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - Result
+
+SPEC CHECKSUMS:
+  Result: 7645bb3f50c2ce726dd0ff2fa7b6f42bbe6c3713
+
+PODFILE CHECKSUM: ee7fa7b9f6dade6905c2b00142c54f164bdc2ceb
+
+COCOAPODS: 1.6.1
+"""
+)
+
+def originalLockfileVersion():
+    return (wrapper(
+"""
+pod "Result", :binary => true
+""") ,
+"""
+import Result
+class A {
+    // Works on 3.x but not 4.x
+    var err: ErrorProtocolConvertible?
+}
+""", "",
+"""
+PODS:
+  - Result (3.2.2)
+
+DEPENDENCIES:
+  - Result
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - Result
+
+SPEC CHECKSUMS:
+  Result: 4edd39003fdccf281d418ee1b006571f70123250
+
+PODFILE CHECKSUM: 8705dea54636097dca87d2a49ac6963c842b6eb4
+
+COCOAPODS: 1.6.1
+"""
+)
+
+def upgradeLockfileVersion():
+    return (wrapper(
+"""
+pod "Result", :binary => true
+""") ,
+"""
+import Result
+class A {
+    // Works on 4.x but not 3.x
+    var err: ErrorConvertible?
+}
+""", "",
+"""
+PODS:
+  - Result (4.0.0)
+
+DEPENDENCIES:
+  - Result
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - Result
+
+SPEC CHECKSUMS:
+  Result: 7645bb3f50c2ce726dd0ff2fa7b6f42bbe6c3713
+
+PODFILE CHECKSUM: 8705dea54636097dca87d2a49ac6963c842b6eb4
+
+COCOAPODS: 1.6.1
+"""
+)
+
 if __name__ == "__main__":
     arg = sys.argv[1]
     print("===================\nchange Podfile to: " + arg + "\n")
