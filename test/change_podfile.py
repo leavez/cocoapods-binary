@@ -32,6 +32,13 @@ def save_to_podfile(text):
     file.write( "" if len(text) <= 2 else text[2])
     file.close()
 
+    if len(text) > 3:
+        path = os.path.dirname(os.path.abspath(__file__))
+        path += "/Podfile.lock"
+        file = open(path, "w+")
+        file.write(text[3])
+        file.close()
+
 
 
 def initial():
