@@ -3,6 +3,7 @@ language: objective-c
 cache:
 - cocoapods
 - bundler
+gemfile: test/Gemfile
 before_install:
 - gem install cocoapods
 script:
