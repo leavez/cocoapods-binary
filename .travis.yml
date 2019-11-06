@@ -4,8 +4,6 @@ cache:
 - cocoapods
 - bundler
 gemfile: test/Gemfile
-before_install:
-- gem install cocoapods
 script:
 - rake install
 - cd test
