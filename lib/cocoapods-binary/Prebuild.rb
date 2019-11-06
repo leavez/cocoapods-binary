@@ -11,20 +11,14 @@ module Pod
         private
 
         def local_manifest 
-            if not @local_manifest_inited
-                @local_manifest_inited = true
-                raise "This method should be call before generate project" unless self.analysis_result == nil
-                @local_manifest = self.sandbox.manifest
-            end
-            @local_manifest
+            self.sandbox.manifest
         end
 
         # @return [Analyzer::SpecsState]
         def prebuild_pods_changes
             return nil if local_manifest.nil?
-            if @prebuild_pods_changes.nil?
-                changes = local_manifest.detect_changes_with_podfile(podfile)
-                @prebuild_pods_changes = Analyzer::SpecsState.new(changes)
+            if @prebuild_pods_changes.nil? && !self.analysis_result.nil?
+                @prebuild_pods_changes = self.analysis_result.sandbox_state
                 # save the chagnes info for later stage
                 Pod::Prebuild::Passer.prebuild_pods_changes = @prebuild_pods_changes 
             end
@@ -40,6 +34,8 @@ module Pod
             return false if local_manifest == nil
             
             changes = prebuild_pods_changes
+            return false if changes.nil?
+
             added = changes.added
             changed = changes.changed 
             unchanged = changes.unchanged
