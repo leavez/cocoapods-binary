@@ -4,6 +4,9 @@ cache:
 - cocoapods
 - bundler
 gemfile: test/Gemfile
+install:
+- bundle install --jobs=3 --retry=3 --path=${BUNDLE_PATH:-vendor/bundle}
+- bundle exec pod setup
 script:
 - rake install
 - cd test
