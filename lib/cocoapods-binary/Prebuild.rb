@@ -109,8 +109,16 @@ module Pod
                 targets = self.pod_targets
             end
 
-            targets = targets.reject {|pod_target| sandbox.local?(pod_target.pod_name) }
-
+            # frameworks which mark binary true, should be filtered before prebuild
+            prebuild_framework_pod_names = []
+            podfile.target_definition_list.each do |target_definition|
+                next if target_definition.prebuild_framework_pod_names.empty?
+                prebuild_framework_pod_names += target_definition.prebuild_framework_pod_names
+            end
+            
+            targets = targets
+            .reject {|pod_target| sandbox.local?(pod_target.pod_name) }
+            .select {|pod_target| prebuild_framework_pod_names.include?(pod_target.pod_name) }
             
             # build!
             Pod::UI.puts "Prebuild frameworks (total #{targets.count})"
