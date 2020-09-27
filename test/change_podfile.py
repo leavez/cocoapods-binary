@@ -32,6 +32,13 @@ def save_to_podfile(text):
     file.write( "" if len(text) <= 2 else text[2])
     file.close()
 
+    if len(text) > 3:
+        path = os.path.dirname(os.path.abspath(__file__))
+        path += "/Podfile.lock"
+        file = open(path, "w+")
+        file.write(text[3])
+        file.close()
+
 
 
 def initial():
@@ -53,7 +60,7 @@ def addSwiftPod():
 """
 keep_source_code_for_prebuilt_frameworks!
 
-pod "RxCocoa", :binary => true
+pod "RxCocoa", "~> 4.0", :binary => true
 pod "Literal", :binary => true
 """), 
 """
@@ -70,7 +77,7 @@ def revertToSourceCode():
 """
 keep_source_code_for_prebuilt_frameworks!
 
-pod "RxCocoa", :binary => true
+pod "RxCocoa", "~> 4.0", :binary => true
 pod "Literal"
 """), 
 """
@@ -233,6 +240,167 @@ class A {
 """
 ) 
 
+def oldPodVersion():
+    return (wrapper(
+"""
+pod "ReactiveSwift", "= 3.0.0", :binary => true
+""") ,
+"""
+import ReactiveSwift
+class A {
+    // Works on 3.x but not 4.x
+    let a = A.b(SignalProducer<Int, NSError>.empty)
+    static func b<U: BindingSource>(_ b: U) -> Bool {
+        return true
+    }
+}
+"""
+)
+
+def upgradePodVersion():
+    return (wrapper(
+"""
+pod "ReactiveSwift", "= 4.0.0", :binary => true
+""") ,
+"""
+import ReactiveSwift
+class A {
+    func b() {
+        // Works on 4.x but not 3.x
+        Lifetime.make().token.dispose()
+    }
+}
+"""
+)
+
+
+def originalPodfileAndLockfileVersion():
+    return (wrapper(
+"""
+pod "Result", "= 3.2.2", :binary => true
+""") ,
+"""
+import Result
+class A {
+    // Works on 3.x but not 4.x
+    var err: ErrorProtocolConvertible?
+}
+""", "",
+"""
+PODS:
+  - Result (3.2.2)
+
+DEPENDENCIES:
+  - Result (= 3.2.2)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - Result
+
+SPEC CHECKSUMS:
+  Result: 4edd39003fdccf281d418ee1b006571f70123250
+
+PODFILE CHECKSUM: 578d759c1f6329e159731bc0a232fb9051977130
+
+COCOAPODS: 1.6.1
+"""
+)
+
+def upgradePodfileAndLockfileVersion():
+    return (wrapper(
+"""
+pod "Result", "= 4.0.0", :binary => true
+""") ,
+"""
+import Result
+class A {
+    // Works on 4.x but not 3.x
+    var err: ErrorConvertible?
+}
+""", "",
+"""
+PODS:
+  - Result (4.0.0)
+
+DEPENDENCIES:
+  - Result (= 4.0.0)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - Result
+
+SPEC CHECKSUMS:
+  Result: 7645bb3f50c2ce726dd0ff2fa7b6f42bbe6c3713
+
+PODFILE CHECKSUM: ee7fa7b9f6dade6905c2b00142c54f164bdc2ceb
+
+COCOAPODS: 1.6.1
+"""
+)
+
+def originalLockfileVersion():
+    return (wrapper(
+"""
+pod "Result", :binary => true
+""") ,
+"""
+import Result
+class A {
+    // Works on 3.x but not 4.x
+    var err: ErrorProtocolConvertible?
+}
+""", "",
+"""
+PODS:
+  - Result (3.2.2)
+
+DEPENDENCIES:
+  - Result
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - Result
+
+SPEC CHECKSUMS:
+  Result: 4edd39003fdccf281d418ee1b006571f70123250
+
+PODFILE CHECKSUM: 8705dea54636097dca87d2a49ac6963c842b6eb4
+
+COCOAPODS: 1.6.1
+"""
+)
+
+def upgradeLockfileVersion():
+    return (wrapper(
+"""
+pod "Result", :binary => true
+""") ,
+"""
+import Result
+class A {
+    // Works on 4.x but not 3.x
+    var err: ErrorConvertible?
+}
+""", "",
+"""
+PODS:
+  - Result (4.0.0)
+
+DEPENDENCIES:
+  - Result
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - Result
+
+SPEC CHECKSUMS:
+  Result: 7645bb3f50c2ce726dd0ff2fa7b6f42bbe6c3713
+
+PODFILE CHECKSUM: 8705dea54636097dca87d2a49ac6963c842b6eb4
+
+COCOAPODS: 1.6.1
+"""
+)
 
 if __name__ == "__main__":
     arg = sys.argv[1]
