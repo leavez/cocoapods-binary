@@ -53,7 +53,7 @@ def addSwiftPod():
 """
 keep_source_code_for_prebuilt_frameworks!
 
-pod "RxCocoa", :binary => true
+pod "RxCocoa", "~> 4.0", :binary => true
 pod "Literal", :binary => true
 """), 
 """
@@ -70,7 +70,7 @@ def revertToSourceCode():
 """
 keep_source_code_for_prebuilt_frameworks!
 
-pod "RxCocoa", :binary => true
+pod "RxCocoa", "~> 4.0", :binary => true
 pod "Literal"
 """), 
 """
@@ -232,6 +232,39 @@ class A {
 }
 """
 ) 
+
+def oldPodVersion():
+    return (wrapper(
+"""
+pod "ReactiveSwift", "= 3.0.0", :binary => true
+""") ,
+"""
+import ReactiveSwift
+class A {
+    // Works on 3.x but not 4.x
+    let a = A.b(SignalProducer<Int, NSError>.empty)
+    static func b<U: BindingSource>(_ b: U) -> Bool {
+        return true
+    }
+}
+"""
+)
+
+def upgradePodVersion():
+    return (wrapper(
+"""
+pod "ReactiveSwift", "= 4.0.0", :binary => true
+""") ,
+"""
+import ReactiveSwift
+class A {
+    func b() {
+        // Works on 4.x but not 3.x
+        Lifetime.make().token.dispose()
+    }
+}
+"""
+)
 
 
 if __name__ == "__main__":

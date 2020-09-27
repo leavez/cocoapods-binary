@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -ex
 
 build() {
     xcodebuild -workspace Binary.xcworkspace -scheme Binary ONLY_ACTIVE_ARCH=YES  CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -quiet || exit 1 
@@ -7,7 +7,7 @@ build() {
 		
 rm -rf Pods
 
-cases=("initial" "addSwiftPod" "revertToSourceCode" "addDifferentNamePod" "addSubPod" "deleteAPod" "addVendoredLibPod" "universalFlag" "multiplePlatforms" "multiplePlatformsWithALLFlag")
+cases=("initial" "addSwiftPod" "revertToSourceCode" "addDifferentNamePod" "addSubPod" "deleteAPod" "addVendoredLibPod" "universalFlag" "multiplePlatforms" "multiplePlatformsWithALLFlag" "oldPodVersion" "upgradePodVersion")
 for action in ${cases[@]}; do
     python change_podfile.py ${action}
     bundle exec pod install
