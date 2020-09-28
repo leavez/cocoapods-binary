@@ -1,7 +1,8 @@
 require 'fourflusher'
 require 'xcpretty'
 
-CONFIGURATION = "Release"
+CONFIGURATION_DEVICE = "Release"
+CONFIGURATION_SIMULATOR = "Debug"
 PLATFORMS = { 'iphonesimulator' => 'iOS',
               'appletvsimulator' => 'tvOS',
               'watchsimulator' => 'watchOS' }
@@ -32,16 +33,16 @@ def build_for_iosish_platform(sandbox,
   # make less arch to iphone simulator for faster build
   custom_build_options_simulator += ['ARCHS=x86_64', 'ONLY_ACTIVE_ARCH=NO'] if simulator == 'iphonesimulator'
 
-  is_succeed, _ = xcodebuild(sandbox, target_label, device, deployment_target, other_options + custom_build_options)
+  is_succeed, _ = xcodebuild(sandbox, target_label, CONFIGURATION_DEVICE, device, deployment_target, other_options + custom_build_options)
   exit 1 unless is_succeed
-  is_succeed, _ = xcodebuild(sandbox, target_label, simulator, deployment_target, other_options + custom_build_options_simulator)
+  is_succeed, _ = xcodebuild(sandbox, target_label, CONFIGURATION_SIMULATOR, simulator, deployment_target, other_options + custom_build_options_simulator)
   exit 1 unless is_succeed
 
   # paths
   target_name = target.name # equals target.label, like "AFNeworking-iOS" when AFNetworking is used in multiple platforms.
   module_name = target.product_module_name
-  device_framework_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{target_name}/#{module_name}.framework"
-  simulator_framework_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{target_name}/#{module_name}.framework"
+  device_framework_path = "#{build_dir}/#{CONFIGURATION_DEVICE}-#{device}/#{target_name}/#{module_name}.framework"
+  simulator_framework_path = "#{build_dir}/#{CONFIGURATION_SIMULATOR}-#{simulator}/#{target_name}/#{module_name}.framework"
 
   device_binary = device_framework_path + "/#{module_name}"
   simulator_binary = simulator_framework_path + "/#{module_name}"
@@ -105,8 +106,8 @@ def build_for_iosish_platform(sandbox,
 
 end
 
-def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, other_options=[])
-  args = %W(-project #{sandbox.project_path.realdirpath} -scheme #{target} -configuration #{CONFIGURATION} -sdk #{sdk} )
+def xcodebuild(sandbox, target, configuration, sdk='macosx', deployment_target=nil, other_options=[])
+  args = %W(-project #{sandbox.project_path.realdirpath} -scheme #{target} -configuration #{configuration} -sdk #{sdk} )
   platform = PLATFORMS[sdk]
   args += Fourflusher::SimControl.new.destination(:oldest, platform, deployment_target) unless platform.nil?
   args += other_options
@@ -160,7 +161,7 @@ module Pod
       # -- build the framework
       case target.platform.name
       when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled, custom_build_options, custom_build_options_simulator)
-      when :osx then xcodebuild(sandbox, target.label, 'macosx', nil, custom_build_options)
+      when :osx then xcodebuild(sandbox, target.label, CONFIGURATION_DEVICE, 'macosx', nil, custom_build_options)
       # when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
       when :watchos then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'watchos', 'watchsimulator', true, custom_build_options, custom_build_options_simulator)
       else raise "Unsupported platform for '#{target.name}': '#{target.platform.name}'" end
