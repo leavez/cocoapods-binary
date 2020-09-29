@@ -14,14 +14,13 @@ def build_for_iosish_platform(sandbox,
                               build_dir, 
                               output_path,
                               target, 
+                              deployment_target, 
                               device, 
                               simulator,
                               bitcode_enabled,
                               custom_build_options = [], # Array<String>
                               custom_build_options_simulator = [] # Array<String>
                               )
-
-  deployment_target = target.platform.deployment_target.to_s
   
   target_label = target.label # name with platform if it's used in multiple platforms
   Pod::UI.puts "Prebuilding #{target_label}..."
@@ -51,7 +50,7 @@ def build_for_iosish_platform(sandbox,
   # combine the binaries
   tmp_lipoed_binary_path = "#{build_dir}/#{target_name}"
   lipo_log = `lipo -create -output #{tmp_lipoed_binary_path} #{device_binary} #{simulator_binary}`
-  puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
+  Pod::UI.puts lipo_log unless File.exist?(tmp_lipoed_binary_path)
   FileUtils.mv tmp_lipoed_binary_path, device_binary, :force => true
   
   # collect the swiftmodule file for various archs.
@@ -124,10 +123,10 @@ def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, other_optio
               printer.pretty_print(line)
             end
         else
-            raise "shouldn't be handle by xcpretty"
+            raise "shouldn't be handled by xcpretty"
         end
     rescue
-        puts log.red
+        Pod::UI.puts log.red
     end
   end
   [is_succeed, log]
@@ -149,7 +148,7 @@ module Pod
     #         [Pathname] output_path
     #         output path for generated frameworks
     #
-    def self.build(sandbox_root_path, target, output_path, bitcode_enabled = false, custom_build_options=[], custom_build_options_simulator=[])
+    def self.build(sandbox_root_path, target, min_deployment_target, output_path, bitcode_enabled = false, custom_build_options=[], custom_build_options_simulator=[])
     
       return if target.nil?
     
@@ -159,7 +158,7 @@ module Pod
 
       # -- build the framework
       case target.platform.name
-      when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'iphoneos', 'iphonesimulator', bitcode_enabled, custom_build_options, custom_build_options_simulator)
+      when :ios then build_for_iosish_platform(sandbox, build_dir, output_path, target, min_deployment_target, 'iphoneos', 'iphonesimulator', bitcode_enabled, custom_build_options, custom_build_options_simulator)
       when :osx then xcodebuild(sandbox, target.label, 'macosx', nil, custom_build_options)
       # when :tvos then build_for_iosish_platform(sandbox, build_dir, target, 'appletvos', 'appletvsimulator')
       when :watchos then build_for_iosish_platform(sandbox, build_dir, output_path, target, 'watchos', 'watchsimulator', true, custom_build_options, custom_build_options_simulator)
