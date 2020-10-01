@@ -28,14 +28,14 @@ module Pod
         end
 
         
-        def exsited_framework_target_names
-            exsited_framework_name_pairs.map {|pair| pair[0]}.uniq
+        def existed_framework_target_names
+            existed_framework_name_pairs.map {|pair| pair[0]}.uniq
         end
-        def exsited_framework_pod_names
-            exsited_framework_name_pairs.map {|pair| pair[1]}.uniq
+        def existed_framework_pod_names
+            existed_framework_name_pairs.map {|pair| pair[1]}.uniq
         end
         def existed_target_names_for_pod_name(pod_name)
-            exsited_framework_name_pairs.select {|pair| pair[1] == pod_name }.map { |pair| pair[0]}
+            existed_framework_name_pairs.select {|pair| pair[1] == pod_name }.map { |pair| pair[0]}
         end
 
 
@@ -59,7 +59,7 @@ module Pod
         end
 
         # Array<[target_name, pod_name]>
-        def exsited_framework_name_pairs
+        def existed_framework_name_pairs
             return [] unless generate_framework_path.exist?
             generate_framework_path.children().map do |framework_path|
                 if framework_path.directory? && (not framework_path.children.empty?)

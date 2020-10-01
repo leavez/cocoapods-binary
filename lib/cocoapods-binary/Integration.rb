@@ -14,7 +14,7 @@ require_relative 'helper/target_checker'
 
 # Provide a special "download" process for prebuilded pods.
 #
-# As the frameworks is already exsited in local folder. We
+# As the frameworks is already existed in local folder. We
 # just create a symlink to the original target folder.
 #
 module Pod
@@ -114,7 +114,7 @@ module Pod
             changes = Pod::Prebuild::Passer.prebuild_pods_changes
             updated_names = []
             if changes == nil
-                updated_names = PrebuildSandbox.from_standard_sandbox(self.sandbox).exsited_framework_pod_names
+                updated_names = PrebuildSandbox.from_standard_sandbox(self.sandbox).existed_framework_pod_names
             else
                 added = changes.added
                 changed = changes.changed 
