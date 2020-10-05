@@ -1,6 +1,7 @@
 require_relative 'rome/build_framework'
 require_relative 'helper/passer'
 require_relative 'helper/target_checker'
+require_relative 'helper/shared_cache'
 
 
 # patch prebuild ability
@@ -70,7 +71,11 @@ module Pod
             # build options
             sandbox_path = sandbox.root
             existed_framework_folder = sandbox.generate_framework_path
-            bitcode_enabled = Pod::Podfile::DSL.bitcode_enabled
+            options = [
+                Podfile::DSL.bitcode_enabled,
+                Podfile::DSL.custom_build_options,
+                Podfile::DSL.custom_build_options_simulator
+            ]
             targets = []
             
             if local_manifest != nil
@@ -123,7 +128,15 @@ module Pod
 
                 output_path = sandbox.framework_folder_path_for_target_name(target.name)
                 output_path.mkpath unless output_path.exist?
-                Pod::Prebuild.build(sandbox_path, target, output_path, bitcode_enabled,  Podfile::DSL.custom_build_options,  Podfile::DSL.custom_build_options_simulator)
+
+                if Prebuild::SharedCache.has?(target, options)
+                    framework_cache_path = Prebuild::SharedCache.local_framework_cache_path_for(target, options)
+                    UI.puts "Using #{target.label} from cache"
+                    FileUtils.cp_r "#{framework_cache_path}/.", output_path
+                else
+                    Pod::Prebuild.build(sandbox_path, target, output_path, *options)
+                    Prebuild::SharedCache.cache(target, output_path, options)
+                end
 
                 # save the resource paths for later installing
                 if target.static_framework? and !target.resource_paths.empty?
@@ -165,6 +178,7 @@ module Pod
                 # This is for target with only .a and .h files
                 if not target.should_build? 
                     Prebuild::Passer.target_names_to_skip_integration_framework << target.name
+                    target_folder.mkpath unless target_folder.exist?
                     FileUtils.cp_r(root_path, target_folder, :remove_destination => true)
                     next
                 end
