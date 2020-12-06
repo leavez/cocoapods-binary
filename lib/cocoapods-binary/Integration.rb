@@ -287,3 +287,77 @@ module Pod
         end
     end
 end
+    
+module Pod
+     module Generator
+         class CopydSYMsScript
+             old_method = instance_method(:generate)
+             define_method(:generate) do
+                 script = old_method.bind(self).()
+                 script = script.gsub(/-av/, "-r -L -p -t -g -o -D -v")
+             end
+         end
+     end
+ end
+
+ module Pod
+     module Generator
+         class CopyXCFrameworksScript
+             old_method = instance_method(:script)
+             define_method(:script) do
+                 script = old_method.bind(self).()
+                 script = script.gsub(/-av/, "-r -L -p -t -g -o -D -v")
+             end
+         end
+     end
+ end
+
+ Pod::Installer::Xcode::PodsProjectGenerator::PodTargetInstaller.define_singleton_method(:dsym_paths) do |target|
+     dsym_paths = target.framework_paths.values.flatten.reject { |fmwk_path| fmwk_path.dsym_path.nil? }.map(&:dsym_path)
+     dsym_paths.concat(target.xcframeworks.values.flatten.flat_map { |xcframework| xcframework_dsyms(xcframework.path) })
+     dsym_paths.uniq
+ end
+
+ module Pod
+     class Installer
+         class Xcode
+             class PodsProjectGenerator
+                 class PodTargetIntegrator
+                     old_method = instance_method(:add_copy_xcframeworks_script_phase)
+                     define_method(:add_copy_xcframeworks_script_phase) do |native_target|
+                         script_path = "${PODS_ROOT}/#{target.copy_xcframeworks_script_path.relative_path_from(target.sandbox.root)}"
+
+                         input_paths_by_config = {}
+                         output_paths_by_config = {}
+
+                         xcframeworks = target.xcframeworks.values.flatten
+
+                         if use_input_output_paths? && !xcframeworks.empty?
+                             input_file_list_path = target.copy_xcframeworks_script_input_files_path
+                             input_file_list_relative_path = "${PODS_ROOT}/#{input_file_list_path.relative_path_from(target.sandbox.root)}"
+                             input_paths_key = UserProjectIntegrator::TargetIntegrator::XCFileListConfigKey.new(input_file_list_path, input_file_list_relative_path)
+                             input_paths = input_paths_by_config[input_paths_key] = []
+
+                             framework_paths = xcframeworks.map { |xcf| "${PODS_ROOT}/#{xcf.path.relative_path_from(target.sandbox.root)}" }
+                             input_paths.concat framework_paths
+
+                             output_file_list_path = target.copy_xcframeworks_script_output_files_path
+                             output_file_list_relative_path = "${PODS_ROOT}/#{output_file_list_path.relative_path_from(target.sandbox.root)}"
+                             output_paths_key = UserProjectIntegrator::TargetIntegrator::XCFileListConfigKey.new(output_file_list_path, output_file_list_relative_path)
+                             output_paths_by_config[output_paths_key] = xcframeworks.map do |xcf|
+                                 "#{Target::BuildSettings::XCFRAMEWORKS_BUILD_DIR_VARIABLE}/#{xcf.name}"
+                             end
+                         end
+
+                         if xcframeworks.empty?
+                             UserProjectIntegrator::TargetIntegrator.remove_copy_xcframeworks_script_phase_from_target(native_target)
+                         else
+                             UserProjectIntegrator::TargetIntegrator.create_or_update_copy_xcframeworks_script_phase_to_target(
+                                 native_target, script_path, input_paths_by_config, output_paths_by_config)
+                         end
+                     end
+                 end
+             end
+         end
+     end
+ end
