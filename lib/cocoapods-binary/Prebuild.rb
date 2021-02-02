@@ -156,7 +156,7 @@ module Pod
             Pod::Prebuild.remove_build_dir(sandbox_path)
 
 
-            # copy vendored libraries and frameworks
+            # copy vendored libraries and frameworks as well as any license
             targets.each do |target|
                 root_path = self.sandbox.pod_dir(target.name)
                 target_folder = sandbox.framework_folder_path_for_target_name(target.name)
@@ -171,14 +171,15 @@ module Pod
 
                 target.spec_consumers.each do |consumer|
                     file_accessor = Sandbox::FileAccessor.new(root_path, consumer)
-                    lib_paths = file_accessor.vendored_frameworks || []
-                    lib_paths += file_accessor.vendored_libraries
+                    preserve_paths = file_accessor.vendored_frameworks || []
+                    preserve_paths += file_accessor.vendored_libraries
+                    preserve_paths << file_accessor.license if file_accessor.license
                     # @TODO dSYM files
-                    lib_paths.each do |lib_path|
-                        relative = lib_path.relative_path_from(root_path)
+                    preserve_paths.each do |path|
+                        relative = path.relative_path_from(root_path)
                         destination = target_folder + relative
                         destination.dirname.mkpath unless destination.dirname.exist?
-                        FileUtils.cp_r(lib_path, destination, :remove_destination => true)
+                        FileUtils.cp_r(path, destination, :remove_destination => true)
                     end
                 end
             end

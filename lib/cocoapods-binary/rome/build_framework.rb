@@ -42,6 +42,11 @@ def build_for_iosish_platform(sandbox,
   module_name = target.product_module_name
   device_framework_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{target_name}/#{module_name}.framework"
   simulator_framework_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{target_name}/#{module_name}.framework"
+  if !File.directory?(device_framework_path)
+    # Newer Xcodes seem to build all in one directory.
+    device_framework_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{module_name}.framework"
+    simulator_framework_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{module_name}.framework"
+  end
 
   device_binary = device_framework_path + "/#{module_name}"
   simulator_binary = simulator_framework_path + "/#{module_name}"
