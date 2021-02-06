@@ -169,6 +169,11 @@ module Pod
                 vendored_frameworks = [vendored_frameworks] if vendored_frameworks.kind_of?(String)
                 vendored_frameworks += [added_framework_file_path]
                 spec.attributes_hash[platform]["vendored_frameworks"] = vendored_frameworks
+
+                preserve_paths = spec.attributes_hash[platform]["preserve_paths"] || []
+                preserve_paths = [preserve_paths] if preserve_paths.kind_of?(String)
+                preserve_paths += ["**/*.bcsymbolmap"]
+                spec.attributes_hash[platform]["preserve_paths"] = preserve_paths
             end
             def empty_source_files(spec)
                 spec.attributes_hash["source_files"] = []
