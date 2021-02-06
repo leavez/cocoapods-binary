@@ -40,8 +40,12 @@ def build_for_iosish_platform(sandbox,
   # paths
   target_name = target.name # equals target.label, like "AFNeworking-iOS" when AFNetworking is used in multiple platforms.
   module_name = target.product_module_name
-  device_framework_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{target_name}/#{module_name}.framework"
-  simulator_framework_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{target_name}/#{module_name}.framework"
+  
+  device_results_path = "#{build_dir}/#{CONFIGURATION}-#{device}/#{target_name}"
+  device_framework_path = "#{device_results_path}/#{module_name}.framework"
+  
+  simulator_results_path = "#{build_dir}/#{CONFIGURATION}-#{simulator}/#{target_name}"
+  simulator_framework_path = "#{simulator_results_path}/#{module_name}.framework"
 
   device_binary = device_framework_path + "/#{module_name}"
   simulator_binary = simulator_framework_path + "/#{module_name}"
@@ -84,6 +88,12 @@ def build_for_iosish_platform(sandbox,
     File.write(device_generated_swift_header_path, combined_header_content.strip)
   end
 
+  # Preserve bcsymbolmap files
+  bcsymbolmap_output_path = "#{output_path}/"
+  FileUtils.mkdir_p(bcsymbolmap_output_path) unless File.exists?(bcsymbolmap_output_path)
+  FileUtils.mv Dir.glob("#{device_results_path}/*.bcsymbolmap"), "#{bcsymbolmap_output_path}/", :force => true
+  FileUtils.mv Dir.glob("#{simulator_results_path}/*.bcsymbolmap"), "#{bcsymbolmap_output_path}/", :force => true
+  
   # handle the dSYM files
   device_dsym = "#{device_framework_path}.dSYM"
   if File.exist? device_dsym
