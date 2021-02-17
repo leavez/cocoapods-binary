@@ -12,7 +12,7 @@ Good news: Introduction on cocoapods offical site: [Pre-compiling dependencies](
 
 You may wonder why CocoaPods doesn't have a function to integrate libs in form of binaries, if there are dozens or hundreds of pods in your podfile and compile them for a great many times meaninglessly. Too many source code of libs slow down your compile and the response of IDE (e.g. code completion), and then reduce work efficiency, leaving us time to think about the meaning of life.
 
-This plugin implements this simple wish. Replace the source code in pod target with prebuilt frameworks.
+This plugin implements this simple wish. Replaces the source code in pod targets with prebuilt frameworks.
 
 Why don't use Carthage? While Carthage also integrates libs in form of frameworks, there several reasons to use CocoaPods with this plugin:
 
@@ -22,7 +22,7 @@ Why don't use Carthage? While Carthage also integrates libs in form of framework
 
 ## How it works
 
-It will compile the source code of pods during the pod install process, and make CocoaPods use them. Which pod should be compiled is controlled by the flag in Podfile.
+It will compile the source code of pods during the pod install process, and make CocoaPods use them. Compiling a pod is then decided by a new flag named `binary` in the Podfile.
 
 #### Under the hood
 
@@ -30,7 +30,7 @@ It will compile the source code of pods during the pod install process, and make
 
 The plugin will do a separated completed 'Pod install' in the standard pre-install hook. But we filter the pods by the flag in Podfile here. Then build frameworks with this generated project by using xcodebuild. Store the frameworks in `Pods/_Prebuild` and save the manifest.lock file for the next pod install.
 
-Then in the flowing normal install process, we hook the integration functions to modify pod specification to using our frameworks.
+Then in the following normal install process, we hook the integration functions to modify pod specification to using our frameworks.
 
 ## Installation
 
