@@ -22,7 +22,7 @@ Why don't use Carthage? While Carthage also integrates libs in form of framework
 
 ## How it works
 
-It will compile the source code of pods during the pod install process, and make CocoaPods use them. Which pod should be compiled is controlled by the flag in Podfile.
+It will compile the source code of pods during the pod install process, and make CocoaPods use them. Compiling a pod is then decided by a new flag named `binary` in the Podfile.
 
 #### Under the hood
 
