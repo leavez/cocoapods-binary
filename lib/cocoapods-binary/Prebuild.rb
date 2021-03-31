@@ -109,6 +109,11 @@ module Pod
                 targets = self.pod_targets
             end
 
+            if Pod::Podfile::DSL.forbidden_dependency_binary 
+                forbidden_dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
+                targets = targets - forbidden_dependency_targets
+            end
+
             targets = targets.reject {|pod_target| sandbox.local?(pod_target.pod_name) }
 
             
