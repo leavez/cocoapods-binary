@@ -12,6 +12,11 @@ module Pod
                 DSL.prebuild_all = true
             end
 
+            # Fobidden dependency auto build to binary
+            def forbidden_dependency_binary!
+                DSL.forbidden_dependency_binary =  true
+            end
+
             # Enable bitcode for prebuilt frameworks
             def enable_bitcode_for_prebuilt_frameworks!
                 DSL.bitcode_enabled = true
@@ -56,6 +61,9 @@ module Pod
             end
 
             private
+            class_attr_accessor :forbidden_dependency_binary
+            forbidden_dependency_binary = false
+
             class_attr_accessor :prebuild_all
             prebuild_all = false
 

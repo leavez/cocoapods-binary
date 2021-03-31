@@ -31,3 +31,5 @@ test/Binary.xcworkspace/contents.xcworkspacedata
 test/Binary.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 test/Podfile
 test/Podfile.lock
+
+*.gem

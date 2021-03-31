@@ -81,8 +81,11 @@ module Pod
                 if not Podfile::DSL.prebuild_all
                     targets = targets.select { |pod_target| prebuild_names.include?(pod_target.pod_name) } 
                 end
-                dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
-                targets = (targets + dependency_targets).uniq
+
+                if not Podfile::DSL.forbidden_dependency_binary
+                    dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
+                    targets = (targets + dependency_targets).uniq
+                end
 
                 # filter should not prebuild
                 explict_should_not_names = target_definition.should_not_prebuild_framework_pod_names

@@ -1,3 +1,30 @@
+Forked from https://github.com/muukii/cocoapods-binary
+
+add `forbidden_dependency_binary!`, Prevent the automatic compilation of dependent libraries into binary as well.
+
+---
+
+> ⚠️ This is a temporaly forked repository.  
+
+https://github.com/leavez/cocoapods-binary/pull/137
+
+cocoapods-binary is not maintained now, because the owner of cocoapods-binary is currently busy.  
+Although, this plugin brings us a bunch of advantages in working iOS app development.  
+Respectfully, I created this forked repo inorder to gather PRs to fix issues and merge into the original repository in the future.
+
+## Installation
+
+```
+gem 'cocoapods-binary', git: "https://github.com/muukii/cocoapods-binary.git", branch: "master"
+```
+
+## Contribution
+
+Please submit a PR to my forked repo from `https://github.com/muukii/cocoapods-binary/pulls`.
+I'll merge it. 
+**But I can't review well because I don't have much experience with Ruby. So I really need developers who can handle ruby code.**
+
+---
 
 <p align="center"><img src="/test/logo.png" width="622"></p>
 
