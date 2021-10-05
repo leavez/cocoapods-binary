@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cocoapods-binary (0.4.4)
+    cocoapods-binary (0.4.7)
       cocoapods (>= 1.5.0, < 2.0)
       fourflusher (~> 2.0)
       xcpretty (~> 0.3.0)

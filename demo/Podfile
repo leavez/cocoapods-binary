@@ -2,11 +2,11 @@ platform :ios, '9.0'
 plugin 'cocoapods-binary'
 
 use_frameworks!
-all_binary!
-
+#all_binary!
 
 target 'demo' do
 
   pod 'Masonry'
+  pod 'Moya', :binary => true
 
 end

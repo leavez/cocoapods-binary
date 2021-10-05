@@ -1,6 +1,15 @@
 Forked from https://github.com/muukii/cocoapods-binary
 
-add `forbidden_dependency_binary!`, Prevent the automatic compilation of dependent libraries into binary as well.
+## Change log
+
+
+2012/09/11
+* Support to configure the `cocoapods-binary` plug-in separately through `BinPodfile`. [more >>](#BinPodfile)
+* Add `all_not_prebuild!` for prebuild. [more >>](#all_not_probuild)
+* Add a `test.rb` script to help you test quickly.
+
+2021/03/15
+* add `forbidden_dependency_binary!`, Prevent the automatic compilation of dependent libraries into binary as well.
 
 ---
 
@@ -90,7 +99,20 @@ If your `Pods` folder is excluded from git, you may add `keep_source_code_for_pr
 
 If bitcode is needed, add a `enable_bitcode_for_prebuilt_frameworks!` before all targets in Podfile
 
+<span id='all_not_probuild'>`all_not_probuild`: </span>If you want to disable binary for all pods, you can use `all_not_prebuild!`, it has high priority to other binary settings.
 
+<span id="BinPodfile">BinPodfie: </span>If you need to frequently modify the configuration of `cocoapods-binary`, but do not want to synchronize to the git repository, you can use `BinPodfile`, add `BinPodfile` to your `.gitignor`file.
+
+```ruby
+
+# You can write the `cocoapods-binary` plugin configuration in this file.
+# Prevent frequent modification of `Podfile` on CI machines.
+
+# e.g
+forbidden_dependency_binary!
+
+all_not_prebuild!
+```
 #### Known Issues
 
 - doesn't support watchos now

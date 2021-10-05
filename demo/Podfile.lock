@@ -1,16 +1,30 @@
 PODS:
+  - Alamofire (4.9.1)
   - Masonry (1.1.0)
+  - Moya (13.0.1):
+    - Moya/Core (= 13.0.1)
+  - Moya/Core (13.0.1):
+    - Alamofire (~> 4.1)
+    - Result (~> 4.1)
+  - Result (4.1.0)
 
 DEPENDENCIES:
   - Masonry
+  - Moya
 
 SPEC REPOS:
   trunk:
+    - Alamofire
     - Masonry
+    - Moya
+    - Result
 
 SPEC CHECKSUMS:
+  Alamofire: 85e8a02c69d6020a0d734f6054870d7ecb75cf18
   Masonry: 678fab65091a9290e40e2832a55e7ab731aad201
+  Moya: f4a4b80ff2f8a4ffc208dfb31cd91636622fee6e
+  Result: bd966fac789cc6c1563440b348ab2598cc24d5c7
 
-PODFILE CHECKSUM: 5daab9dbab4736d6a1b3df2ffa8d856285c16553
+PODFILE CHECKSUM: 3ce0f1842cd4e2647ed42da70d44c9392b1a014d
 
 COCOAPODS: 1.10.0

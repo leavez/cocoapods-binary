@@ -88,7 +88,16 @@ module Pod
                     path_objects = hash[name]
                     if path_objects != nil
                         path_objects.each do |object|
-                            make_link(object.real_file_path, object.target_file_path)
+                            # make_link(object.real_file_path, object.target_file_path)
+                            # https://github.com/leavez/cocoapods-binary/pull/142
+                            target_file_path = object.target_file_path
+                            real_file_path = object.real_file_path
+                            case File.extname(real_file_path)
+                            when '.xib'
+                                real_file_path = real_file_path.sub_ext(".nib")
+                                target_file_path = target_file_path.sub(".xib", ".nib")
+                            end
+                            make_link(real_file_path, target_file_path)
                         end
                     end
                 end # of for each 

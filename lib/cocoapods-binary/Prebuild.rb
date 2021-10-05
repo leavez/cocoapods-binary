@@ -97,7 +97,8 @@ module Pod
                 targets = root_names_to_update.map do |pod_name|
                     tars = Pod.fast_get_targets_for_pod_name(pod_name, self.pod_targets, cache)
                     if tars.nil? || tars.empty?
-                        raise "There's no target named (#{pod_name}) in Pod.xcodeproj.\n #{self.pod_targets.map(&:name)}" if t.nil?
+                        # https://github.com/leavez/cocoapods-binary/pull/148
+                        raise "There's no target named (#{pod_name}) in Pod.xcodeproj.\n #{self.pod_targets.map(&:name)}" if tars.nil?
                     end
                     tars
                 end.flatten
