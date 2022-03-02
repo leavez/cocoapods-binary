@@ -1,3 +1,5 @@
+-> https://github.com/muukii/cocoapods-frost
+
 Forked from https://github.com/muukii/cocoapods-binary
 
 ## Change log
