@@ -97,7 +97,8 @@ module Pod
                 targets = root_names_to_update.map do |pod_name|
                     tars = Pod.fast_get_targets_for_pod_name(pod_name, self.pod_targets, cache)
                     if tars.nil? || tars.empty?
-                        raise "There's no target named (#{pod_name}) in Pod.xcodeproj.\n #{self.pod_targets.map(&:name)}" if t.nil?
+                        # https://github.com/leavez/cocoapods-binary/pull/148
+                        raise "There's no target named (#{pod_name}) in Pod.xcodeproj.\n #{self.pod_targets.map(&:name)}" if tars.nil?
                     end
                     tars
                 end.flatten
@@ -107,6 +108,11 @@ module Pod
                 targets = (targets + dependency_targets).uniq
             else
                 targets = self.pod_targets
+            end
+
+            if Pod::Podfile::DSL.forbidden_dependency_binary 
+                forbidden_dependency_targets = targets.map {|t| t.recursive_dependent_targets }.flatten.uniq || []
+                targets = targets - forbidden_dependency_targets
             end
 
             targets = targets.reject {|pod_target| sandbox.local?(pod_target.pod_name) }

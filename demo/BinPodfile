@@ -1,0 +1,8 @@
+
+# You can write the `cocoapods-binary` plugin configuration in this file.
+# Prevent frequent modification of `Podfile` on CI machines.
+
+# e.g
+forbidden_dependency_binary!
+
+all_not_prebuild!

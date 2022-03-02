@@ -12,6 +12,17 @@ module Pod
                 DSL.prebuild_all = true
             end
 
+            # Disable prebuiding for all pods
+            # it has a high priority to other binary settings
+            def all_not_prebuild!
+                DSL.all_not_prebuild = true
+            end
+
+            # Fobidden dependency auto build to binary
+            def forbidden_dependency_binary!
+                DSL.forbidden_dependency_binary =  true
+            end
+
             # Enable bitcode for prebuilt frameworks
             def enable_bitcode_for_prebuilt_frameworks!
                 DSL.bitcode_enabled = true
@@ -56,8 +67,14 @@ module Pod
             end
 
             private
+            class_attr_accessor :forbidden_dependency_binary
+            forbidden_dependency_binary = false
+
             class_attr_accessor :prebuild_all
             prebuild_all = false
+
+            class_attr_accessor :all_not_prebuild
+            all_not_prebuild = false
 
             class_attr_accessor :bitcode_enabled
             bitcode_enabled = false
@@ -76,6 +93,22 @@ end
 Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_context|
 
     require_relative 'helper/feature_switches'
+
+    # sync BinPodfile, refer to `https://github.com/tripleCC/cocoapods-bin`
+    bin_project_root = Pod::Config.instance.project_root
+    bin_path = File.join(bin_project_root.to_s, 'BinPodfile')
+    next unless File.exist?(bin_path)
+    bin_contents = File.open(bin_path, 'r:utf-8', &:read)
+    bin_podfile = Pod::Config.instance.podfile
+    bin_podfile.instance_eval do
+      begin
+        eval(bin_contents, nil, bin_path)
+      rescue Exception => e
+        bin_message = "Invalid `#{bin_path}` file: #{e.message}"
+        raise Pod::DSLError.new(bin_message, bin_path, e, bin_contents)
+      end
+    end
+
     if Pod.is_prebuild_stage
         next
     end
@@ -90,56 +123,57 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
             exit
         end
     end
-    
-    
-    # -- step 1: prebuild framework ---
-    # Execute a sperated pod install, to generate targets for building framework,
-    # then compile them to framework files.
-    require_relative 'helper/prebuild_sandbox'
-    require_relative 'Prebuild'
-    
-    Pod::UI.puts "🚀  Prebuild frameworks"
-    
-    # Fetch original installer (which is running this pre-install hook) options,
-    # then pass them to our installer to perform update if needed
-    # Looks like this is the most appropriate way to figure out that something should be updated
-    
-    update = nil
-    repo_update = nil
-    
-    include ObjectSpace
-    ObjectSpace.each_object(Pod::Installer) { |installer|
-        update = installer.update
-        repo_update = installer.repo_update
-    }
-    
-    # control features
-    Pod.is_prebuild_stage = true
-    Pod::Podfile::DSL.enable_prebuild_patch true  # enable sikpping for prebuild targets
-    Pod::Installer.force_disable_integration true # don't integrate targets
-    Pod::Config.force_disable_write_lockfile true # disbale write lock file for perbuild podfile
-    Pod::Installer.disable_install_complete_message true # disable install complete message
-    
-    # make another custom sandbox
-    standard_sandbox = installer_context.sandbox
-    prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sandbox)
-    
-    # get the podfile for prebuild
-    prebuild_podfile = Pod::Podfile.from_ruby(podfile.defined_in_file)
-    
-    # install
-    lockfile = installer_context.lockfile
-    binary_installer = Pod::Installer.new(prebuild_sandbox, prebuild_podfile, lockfile)
-    
-    if binary_installer.have_exact_prebuild_cache? && !update
-        binary_installer.install_when_cache_hit!
+
+    # Check prebuild enable
+    if  Pod::Podfile::DSL.all_not_prebuild # Disable prebuild
+        Pod::UI.puts "⚠️ Disable prebuild!"
     else
-        binary_installer.update = update
-        binary_installer.repo_update = repo_update
-        binary_installer.install!
+        Pod::UI.puts "🚀  Prebuild frameworks"
+
+        # -- step 1: prebuild framework ---
+        # Execute a sperated pod install, to generate targets for building framework,
+        # then compile them to framework files.
+        require_relative 'helper/prebuild_sandbox'
+        require_relative 'Prebuild'
+
+        # Fetch original installer (which is running this pre-install hook) options,
+        # then pass them to our installer to perform update if needed
+        # Looks like this is the most appropriate way to figure out that something should be updated
+        include ObjectSpace
+        update = nil
+        repo_update = nil
+        ObjectSpace.each_object(Pod::Installer) { |installer|
+            update = installer.update
+            repo_update = installer.repo_update
+        }
+
+        # control features
+        Pod.is_prebuild_stage = true
+        Pod::Podfile::DSL.enable_prebuild_patch true  # enable sikpping for prebuild targets
+        Pod::Installer.force_disable_integration true # don't integrate targets
+        Pod::Config.force_disable_write_lockfile true # disbale write lock file for perbuild podfile
+        Pod::Installer.disable_install_complete_message true # disable install complete message
+
+        # make another custom sandbox
+        standard_sandbox = installer_context.sandbox
+        prebuild_sandbox = Pod::PrebuildSandbox.from_standard_sandbox(standard_sandbox)
+
+        # get the podfile for prebuild
+        prebuild_podfile = Pod::Podfile.from_ruby(podfile.defined_in_file)
+
+        # install
+        lockfile = installer_context.lockfile
+        binary_installer = Pod::Installer.new(prebuild_sandbox, prebuild_podfile, lockfile)
+
+        if  binary_installer.have_exact_prebuild_cache? && !update
+            binary_installer.install_when_cache_hit!
+        else
+            binary_installer.update = update
+            binary_installer.repo_update = repo_update
+            binary_installer.install!
+        end
     end
-    
-    
+
     # reset the environment
     Pod.is_prebuild_stage = false
     Pod::Installer.force_disable_integration false
@@ -147,8 +181,7 @@ Pod::HooksManager.register('cocoapods-binary', :pre_install) do |installer_conte
     Pod::Config.force_disable_write_lockfile false
     Pod::Installer.disable_install_complete_message false
     Pod::UserInterface.warnings = [] # clean the warning in the prebuild step, it's duplicated.
-    
-    
+
     # -- step 2: pod install ---
     # install
     Pod::UI.puts "\n"
